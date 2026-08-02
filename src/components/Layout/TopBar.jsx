@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, LogOut, CheckCircle, FileText, CreditCard, Calendar, Clock, ShieldCheck } from 'lucide-react';
+import { Bell, LogOut, CheckCircle, FileText, CreditCard, Calendar, Clock, ShieldCheck, Menu } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 
 const PAGE_NAMES = {
@@ -14,7 +14,7 @@ const PAGE_NAMES = {
   users:        'USER MANAGEMENT',
 };
 
-export default function TopBar({ activePage, onNavigate }) {
+export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
   const { state, dispatch } = useApp();
   const { burs = [], dvs = [], journalEntries = [], currentUser } = state;
 
@@ -38,43 +38,36 @@ export default function TopBar({ activePage, onNavigate }) {
 
   const accurateNotifications = [
     {
-      id: 'notif-bur-pending',
-      type: 'bur',
-      title: `${pendingBURs.length} BURs Pending Review`,
-      desc: pendingBURs.length > 0 ? `Latest: ${pendingBURs[0].burNo || 'BUR'} (${pendingBURs[0].payeeName || 'Request'})` : 'No pending BUR obligations queued',
-      time: 'Real-time'
+      id: 'notif-bur',
+      title: `${pendingBURs.length} Pending BUR Obligations`,
+      time: 'Requires Budget Certification',
+      type: 'warning',
+      actionPage: 'bur',
     },
     {
-      id: 'notif-dv-pending',
-      type: 'dv',
-      title: `${pendingDVs.length} Disbursement Vouchers Pending`,
-      desc: pendingDVs.length > 0 ? `Latest: ${pendingDVs[0].dvNo || 'DV'} (${pendingDVs[0].payeeName || 'Payee'})` : 'No disbursement vouchers awaiting processing',
-      time: 'Real-time'
+      id: 'notif-dv',
+      title: `${pendingDVs.length} DVs Awaiting Accounting/Check Approval`,
+      time: 'Action Required',
+      type: 'info',
+      actionPage: 'dv',
     },
     {
-      id: 'notif-paid-dv',
-      type: 'system',
-      title: `${paidDVs.length} Paid & Posted Vouchers`,
-      desc: `${journalEntries.length} journal entries balanced & posted to General Ledger`,
-      time: 'Live Audit'
+      id: 'notif-paid',
+      title: `${paidDVs.length} Paid Disbursements Logged`,
+      time: 'General Ledger Posted',
+      type: 'success',
+      actionPage: 'ledger',
     },
-    {
-      id: 'notif-session',
-      type: 'security',
-      title: `Authenticated: ${currentUser ? currentUser.name : 'System User'}`,
-      desc: `Role: ${currentUser ? currentUser.role : 'Authorized'} · CCP Financial Management Portal`,
-      time: 'Active Session'
-    }
-  ].map(n => ({ ...n, unread: !readIds.has(n.id) }));
+  ];
 
-  const unreadCount = accurateNotifications.filter(n => n.unread).length;
+  const unreadCount = accurateNotifications.filter((n) => !readIds.has(n.id)).length;
 
   const markAllRead = () => {
     setReadIds(new Set(accurateNotifications.map(n => n.id)));
   };
 
   return (
-    <header className="no-print" style={{
+    <header className="no-print topbar-header" style={{
       position: 'fixed',
       top: 0,
       right: 0,
@@ -98,17 +91,31 @@ export default function TopBar({ activePage, onNavigate }) {
         backgroundSize: '24px 24px'
       }} />
 
-      {/* Header Left Title Section */}
-      <div style={{ position: 'relative', zIndex: 2 }}>
-        <h1 style={{
-          fontSize: '28px',
+      {/* Header Left Title Section & Mobile Hamburger */}
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button
+          onClick={onToggleMobile}
+          className="mobile-hamburger-btn"
+          aria-label="Toggle navigation menu"
+          style={{
+            background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(212,175,55,0.4)',
+            color: '#FFF', width: 36, height: 36, borderRadius: 8, display: 'none',
+            alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+          }}
+        >
+          <Menu size={20} />
+        </button>
+
+        <h1 className="topbar-title" style={{
+          fontSize: '24px',
           fontWeight: 900,
           fontFamily: "'Playfair Display', Georgia, serif",
-          letterSpacing: '0.06em',
+          letterSpacing: '0.04em',
           textTransform: 'uppercase',
           margin: 0,
           color: '#FFFFFF',
-          textShadow: '0 2px 6px rgba(0,0,0,0.6)'
+          textShadow: '0 2px 6px rgba(0,0,0,0.6)',
+          whiteSpace: 'nowrap'
         }}>
           FINANCIAL MANAGEMENT SYSTEM
         </h1>

@@ -41,7 +41,7 @@ export default function LedgerModule() {
         <div className="page-header-info">
           <div className="page-title">Credit & Collections</div>
           <div className="page-subtitle">
-            General Ledger · Subsidiary Ledger Entries & Double-Entry Bookkeeping
+            General Ledger · Subsidiary Ledger & Double-Entry Bookkeeping
           </div>
         </div>
         <div style={{

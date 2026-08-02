@@ -28,7 +28,7 @@ export default function DVModule() {
   const [rejectModal, setRejectModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  const canCreate = currentUser?.permissions.includes('all') || currentUser?.permissions.includes('dv.create');
+  const canCreate = !currentUser || currentUser.permissions.includes('all') || currentUser.permissions.includes('dv.create') || currentUser.permissions.includes('bur.create') || currentUser.role === 'IT/ADMIN' || currentUser.role === 'Budget Officer';
   const obligatedBURs = burs.filter((b) => b.status === 'OBLIGATED');
 
   const filtered = dvs.filter((d) => {
@@ -80,7 +80,7 @@ export default function DVModule() {
               if (selectedDV) {
                 dispatch({ type: 'DOCUMENT_UPDATE', payload: { type: 'DV', id: selectedDV.id, data } });
               } else {
-                dispatch({ type: 'DOCUMENT_CREATE', payload: data });
+                dispatch({ type: 'DOCUMENT_CREATE_DV', payload: data });
               }
               setView('list'); 
               setSelectedDV(null);
@@ -115,6 +115,11 @@ export default function DVModule() {
             {dvs.length} total DVs · {dvs.filter((d) => d.status === 'PAID').length} paid
           </div>
         </div>
+        {canCreate && (
+          <button className="btn btn-primary" onClick={() => { setView('form'); setSelectedDV(null); setError(''); }}>
+            <Plus size={14} /> New Disbursement Voucher
+          </button>
+        )}
       </div>
 
       {error && (
@@ -162,7 +167,6 @@ export default function DVModule() {
               <th>Date</th>
               <th>Payee</th>
               <th>BUR Reference</th>
-              <th>Mode</th>
               <th className="text-right">Gross Claim</th>
               <th className="text-right">Deductions</th>
               <th className="text-right">Net Amount</th>
@@ -173,19 +177,18 @@ export default function DVModule() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={10}>
+                <td colSpan={9}>
                   <div className="grid-empty">
                     <div className="grid-empty-icon">💳</div>
                     <div className="grid-empty-text">No Disbursement Vouchers found</div>
                     <div className="grid-empty-sub">
-                      Disbursement Vouchers are automatically generated upon Budget Utilization Request (BUR) creation.
+                      Click "New Disbursement Voucher" to process a payment linked to an obligated BUR.
                     </div>
                   </div>
                 </td>
               </tr>
             ) : (
               filtered.map((dv) => {
-                const transition = DV_STATUS_TRANSITIONS[dv.status];
                 return (
                   <tr key={dv.id} onClick={() => { setSelectedDV(dv); setView('detail'); }}>
                     <td className="mono">{dv.dvNo}</td>
@@ -195,14 +198,6 @@ export default function DVModule() {
                       <div style={{ fontSize: 11, color: '#9CA3AF' }}>TIN: {dv.payeeTIN || '—'}</div>
                     </td>
                     <td className="mono" style={{ fontSize: 12, color: '#6B7280' }}>{dv.burRef || '—'}</td>
-                    <td>
-                      <span style={{
-                        fontSize: 11, fontWeight: 600, padding: '2px 8px',
-                        background: dv.modeOfPayment === 'Check' ? '#EFF6FF' : '#F5F3FF',
-                        color: dv.modeOfPayment === 'Check' ? '#2563EB' : '#7C3AED',
-                        borderRadius: 4,
-                      }}>{dv.modeOfPayment}</span>
-                    </td>
                     <td className="text-right mono" style={{ fontWeight: 700 }}>{formatCurrency(dv.grossClaim)}</td>
                     <td className="text-right mono" style={{ color: '#DC2626', fontSize: 12 }}>
                       ({formatCurrency(dv.taxDeductions?.totalDeductions || 0)})

@@ -164,19 +164,20 @@ export default function BURModule() {
           <thead>
             <tr>
               <th>BUR No.</th>
-              <th>Responsibility Center</th>
-              <th>MFO/PAP</th>
+              <th>Payee Name</th>
+              <th>RC Code</th>
               <th>Allotment Class</th>
-              <th className="text-right">Amount Requested</th>
+              <th className="text-right">Obligated Amount</th>
+              <th className="text-right">Disbursed Amount</th>
+              <th className="text-right">Remaining Balance</th>
               <th>Status</th>
-              <th>Date Created</th>
               <th className="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={9}>
                   <div className="grid-empty">
                     <div className="grid-empty-icon">📄</div>
                     <div className="grid-empty-text">No BURs found</div>
@@ -187,73 +188,74 @@ export default function BURModule() {
                 </td>
               </tr>
             ) : (
-              filtered.map((bur) => (
-                <tr key={bur.id} onClick={() => { setSelectedBUR(bur); setView('detail'); }}>
-                  <td className="mono">{bur.burNo}</td>
-                  <td>{bur.responsibilityCenter}</td>
-                  <td style={{ fontSize: 12, color: '#6B7280' }}>{bur.mfoPap}</td>
-                  <td>
-                    <span style={{
-                      fontSize: 11, fontWeight: 700,
-                      color: bur.allotmentClass === 'PS' ? '#2563EB' : bur.allotmentClass === 'MOOE' ? '#059669' : '#D97706',
-                    }}>{bur.allotmentClass}</span>
-                  </td>
-                  <td className="text-right mono" style={{ fontWeight: 700 }}>
-                    {formatCurrency(bur.amount)}
-                  </td>
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <StatusBadge status={bur.status} />
-                  </td>
-                  <td style={{ fontSize: 12, color: '#6B7280' }}>{formatDate(bur.createdAt)}</td>
-                  <td className="text-center" onClick={(e) => e.stopPropagation()}>
-                    <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-                      <button
-                        className="btn btn-ghost btn-sm btn-icon"
-                        title="View Details"
-                        onClick={() => { setSelectedBUR(bur); setView('detail'); }}
-                      >
-                        <Eye size={14} />
-                      </button>
-                      <button
-                        className="btn btn-ghost btn-sm btn-icon"
-                        title="Print"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPrintBUR(bur);
-                          setTimeout(() => window.print(), 100);
-                        }}
-                      >
-                        <Printer size={14} />
-                      </button>
-                      {(bur.status === 'PREPARED' || bur.status === 'DRAFT') && canCreate && (
+              filtered.map((bur) => {
+                const disbursed = state.dvs
+                  .filter(d => (d.burRef === bur.burNo || d.burRef === bur.id) && d.status === 'PAID')
+                  .reduce((s, d) => s + (d.grossClaim || 0), 0);
+                const remaining = Math.max(0, bur.amount - disbursed);
+                return (
+                  <tr key={bur.id} onClick={() => { setSelectedBUR(bur); setView('detail'); }}>
+                    <td className="mono" style={{ fontWeight: 700 }}>{bur.burNo}</td>
+                    <td>
+                      <div style={{ fontWeight: 700, fontSize: 13 }}>{bur.payeeName || 'N/A'}</div>
+                      <div style={{ fontSize: 11, color: '#6B7280' }}>{bur.office || bur.responsibilityCenter}</div>
+                    </td>
+                    <td className="mono" style={{ fontSize: 12 }}>{bur.responsibilityCenter || '08'}</td>
+                    <td>
+                      <span style={{
+                        fontSize: 11, fontWeight: 700,
+                        color: bur.allotmentClass === 'PS' ? '#2563EB' : bur.allotmentClass === 'MOOE' ? '#059669' : '#D97706',
+                      }}>{bur.allotmentClass}</span>
+                    </td>
+                    <td className="text-right mono" style={{ fontWeight: 700 }}>
+                      {formatCurrency(bur.amount)}
+                    </td>
+                    <td className="text-right mono" style={{ color: '#059669', fontSize: 12 }}>
+                      {formatCurrency(disbursed)}
+                    </td>
+                    <td className="text-right mono" style={{ fontWeight: 700, color: remaining > 0 ? '#111827' : '#6B7280' }}>
+                      {formatCurrency(remaining)}
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <StatusBadge status={bur.status} />
+                    </td>
+                    <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                         <button
                           className="btn btn-ghost btn-sm btn-icon"
-                          title="Edit BUR"
-                          onClick={() => {
-                            setSelectedBUR(bur); 
-
-                            setView('detail'); 
+                          title="View Details"
+                          onClick={() => { setSelectedBUR(bur); setView('detail'); }}
+                        >
+                          <Eye size={14} />
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
+                          title="Print Official BUR"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPrintBUR(bur);
+                            setTimeout(() => window.print(), 100);
                           }}
                         >
-                          <Edit size={14} />
+                          <Printer size={14} />
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
           {filtered.length > 0 && (
             <tfoot>
               <tr>
-                <td colSpan={5} className="text-right" style={{ color: '#6B7280', fontWeight: 400 }}>
-                  Total ({filtered.length} records)
+                <td colSpan={4} className="text-right" style={{ color: '#6B7280', fontWeight: 400 }}>
+                  Total ({filtered.length} BURs)
                 </td>
-                <td className="text-right mono">
+                <td className="text-right mono" style={{ fontWeight: 800 }}>
                   {formatCurrency(filtered.reduce((s, b) => s + b.amount, 0))}
                 </td>
-                <td colSpan={3} />
+                <td colSpan={4} />
               </tr>
             </tfoot>
           )}

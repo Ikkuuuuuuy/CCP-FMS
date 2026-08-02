@@ -9,27 +9,12 @@ export default function TransactionLogsModule() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('DATE_DESC');
 
-  // Sample rich transaction feed merged with live state
-  const mockTransactions = [
-    { id: 'BUR-2026-01-001', type: 'BUR', payee: 'Manila Symphony Orchestra Inc.', date: '2026-08-01 09:15 AM', rawDate: '2026-08-01T09:15:00', status: 'OBLIGATED', amount: 450000, fundCluster: '101' },
-    { id: 'DV-2026-08-014', type: 'DV', payee: 'Philippine Stage Lighting & Sound Corp', date: '2026-08-01 10:30 AM', rawDate: '2026-08-01T10:30:00', status: 'PAID', amount: 185000, fundCluster: '101' },
-    { id: 'JE-2026-08-009', type: 'LEDGER', payee: 'MERALCO Power Supply Disbursement', date: '2026-08-01 11:45 AM', rawDate: '2026-08-01T11:45:00', status: 'POSTED', amount: 320000, fundCluster: '101' },
-    { id: 'SL-2026-08-001', type: 'SL', payee: 'LSERV Corporation (Accounts Payable SL)', date: '2026-08-01 02:15 PM', rawDate: '2026-08-01T14:15:00', status: 'RECORDED', amount: 11498489.52, fundCluster: '101', accountCode: '2-01-01' },
-    { id: 'BUR-2026-01-002', type: 'BUR', payee: 'Bayani Arts & Crafts Supplies', date: '2026-08-02 08:20 AM', rawDate: '2026-08-02T08:20:00', status: 'PENDING_BUDGET', amount: 95000, fundCluster: '151' },
-    { id: 'DV-2026-08-015', type: 'DV', payee: 'National Museum Security Services', date: '2026-08-02 09:00 AM', rawDate: '2026-08-02T09:00:00', status: 'APPROVED', amount: 240000, fundCluster: '101' },
-    { id: 'SL-2026-08-002', type: 'SL', payee: 'Sophies IT Services (Due to BIR SL)', date: '2026-08-02 09:30 AM', rawDate: '2026-08-02T09:30:00', status: 'POSTED', amount: 12546.87, fundCluster: '101', accountCode: '2-02-03' },
-    { id: 'BUR-2026-01-003', type: 'BUR', payee: 'CCP Main Theater Stage Renovation', date: '2026-08-02 09:40 AM', rawDate: '2026-08-02T09:40:00', status: 'OBLIGATED', amount: 1250000, fundCluster: '104' },
-    { id: 'JE-2026-08-010', type: 'LEDGER', payee: 'PLDT Fiber Optical Communications', date: '2026-08-02 10:15 AM', rawDate: '2026-08-02T10:15:00', status: 'POSTED', amount: 85000, fundCluster: '101' },
-    { id: 'SL-2026-08-003', type: 'SL', payee: 'MDS Regular Cash Disbursement SL', date: '2026-08-02 10:45 AM', rawDate: '2026-08-02T10:45:00', status: 'RECONCILED', amount: 188203.13, fundCluster: '101', accountCode: '1-01-01' },
-    { id: 'DV-2026-08-016', type: 'DV', payee: 'CCP Artists Residency Allowance', date: '2026-08-02 11:00 AM', rawDate: '2026-08-02T11:00:00', status: 'PENDING_ACCOUNTING', amount: 120000, fundCluster: '151' }
-  ];
-
-  // Merge live data
+  // Dynamically generated live transaction feed
   const liveTransactions = [
     ...(burs || []).map(b => ({
       id: b.burNo || `BUR-${b.id}`,
       type: 'BUR',
-      payee: b.payeeName || b.payee || b.requestingOffice || 'BUR Request',
+      payee: b.payeeName || b.office || 'BUR Request',
       date: b.createdAt ? new Date(b.createdAt).toLocaleString() : '2026-08-02',
       rawDate: b.createdAt || '2026-08-02',
       status: b.status || 'OBLIGATED',
@@ -61,7 +46,7 @@ export default function TransactionLogsModule() {
     )
   ];
 
-  const allLogs = [...mockTransactions, ...liveTransactions];
+  const allLogs = liveTransactions;
 
   // Filter
   const filteredLogs = allLogs.filter(t => {

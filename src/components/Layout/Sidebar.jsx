@@ -71,7 +71,7 @@ const NAV_ITEMS = [
   { id: 'users', label: 'User Management', icon: Users, adminOnly: true },
 ];
 
-export default function Sidebar({ activePage, onNavigate }) {
+export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMobile }) {
   const { state, dispatch } = useApp();
   const { currentUser } = state;
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
@@ -107,22 +107,35 @@ export default function Sidebar({ activePage, onNavigate }) {
   });
 
   return (
-    <aside className="no-print" style={{
-      width: 'var(--sidebar-width, 256px)',
-      minWidth: 'var(--sidebar-width, 256px)',
-      height: '100vh',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      backgroundColor: '#141414', // Sleek Black Sidebar Body
-      borderRight: '1px solid rgba(191,160,70,0.2)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      zIndex: 100,
-      boxSizing: 'border-box',
-      transition: 'width 0.2s ease, min-width 0.2s ease'
-    }}>
+    <>
+      {/* Mobile Drawer Backdrop */}
+      {mobileOpen && (
+        <div
+          onClick={onCloseMobile}
+          className="mobile-backdrop"
+          style={{
+            position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(3px)', zIndex: 250, cursor: 'pointer'
+          }}
+        />
+      )}
+
+      <aside className={`no-print sidebar-drawer ${mobileOpen ? 'mobile-open' : ''}`} style={{
+        width: 'var(--sidebar-width, 256px)',
+        minWidth: 'var(--sidebar-width, 256px)',
+        height: '100vh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        backgroundColor: '#141414', // Sleek Black Sidebar Body
+        borderRight: '1px solid rgba(191,160,70,0.2)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        zIndex: 300,
+        boxSizing: 'border-box',
+        transition: 'transform 0.25s ease, width 0.2s ease'
+      }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
         {/* === BRAND HEADER (Height aligned with TopBar) === */}
         <div style={{
@@ -284,5 +297,6 @@ export default function Sidebar({ activePage, onNavigate }) {
         )}
       </div>
     </aside>
+  </>
   );
 }

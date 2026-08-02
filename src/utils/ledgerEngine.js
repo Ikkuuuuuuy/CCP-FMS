@@ -49,7 +49,7 @@ export function buildDVPaymentJournalEntry(dv) {
 
   // DEBIT: Expense account (gross amount)
   lines.push({
-    account_code: expenseAccountCode || '5-02-99',
+    account_code: expenseAccountCode || '5029999000',
     account_name: expenseAccountName || 'Other MOOE',
     debit: grossClaim,
     credit: 0,
@@ -58,7 +58,7 @@ export function buildDVPaymentJournalEntry(dv) {
   // CREDIT: Cash - MDS (net payment actually disbursed)
   if (netAmount > 0) {
     lines.push({
-      account_code: '1-01-01',
+      account_code: '1010101000',
       account_name: 'Cash - MDS, Regular',
       debit: 0,
       credit: netAmount,
@@ -68,8 +68,8 @@ export function buildDVPaymentJournalEntry(dv) {
   // CREDIT: Due to BIR — Final VAT
   if (finalVat > 0) {
     lines.push({
-      account_code: '2-02-03',
-      account_name: 'Due to BIR (Tax Withholding) — Final VAT 5%',
+      account_code: '202010005',
+      account_name: 'Due to BIR — Value Added Tax 5%',
       debit: 0,
       credit: finalVat,
     });
@@ -78,8 +78,8 @@ export function buildDVPaymentJournalEntry(dv) {
   // CREDIT: Due to BIR — EWT
   if (ewt > 0) {
     lines.push({
-      account_code: '2-02-03',
-      account_name: 'Due to BIR (Tax Withholding) — EWT',
+      account_code: '2020101002',
+      account_name: 'Due to BIR — Expanded Tax 2%',
       debit: 0,
       credit: ewt,
     });

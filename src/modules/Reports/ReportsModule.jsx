@@ -24,6 +24,7 @@ export default function ReportsModule() {
 
   const REPORTS = [
     { id: 'sbu', label: 'Statement of Budget Utilization', icon: BarChart2 },
+    { id: 'perf', label: 'Statement of Financial Performance', icon: FileText },
     { id: 'trial', label: 'Trial Balance', icon: FileText },
     { id: 'audit', label: 'Audit Summary', icon: ClipboardList },
   ];
@@ -203,6 +204,74 @@ export default function ReportsModule() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ====== STATEMENT OF FINANCIAL PERFORMANCE ====== */}
+      {activeReport === 'perf' && (
+        <div id="report-content">
+          <PrintHeader
+            title="Statement of Financial Performance"
+            subtitle={`For the Period Ended ${formatDate(new Date().toISOString())} · FY 2026`}
+          />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            {/* Revenue */}
+            <div className="card">
+              <div className="card-header" style={{ background: '#ECFDF5', borderBottom: '1px solid #A7F3D0' }}>
+                <div className="card-title" style={{ color: '#065F46' }}>Revenue / Operating Income</div>
+              </div>
+              <div className="card-body">
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
+                  <span>Subsidy from National Government (GAA)</span>
+                  <span className="mono" style={{ fontWeight: 700 }}>{formatCurrency(98500000)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
+                  <span>Income from Cultural Performances & Ticket Sales</span>
+                  <span className="mono" style={{ fontWeight: 700 }}>{formatCurrency(18500000)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
+                  <span>Rental Income — CCP Complex & Facilities</span>
+                  <span className="mono" style={{ fontWeight: 700 }}>{formatCurrency(12400000)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0 0', fontWeight: 800, fontSize: 14 }}>
+                  <span>TOTAL REVENUE</span>
+                  <span className="mono" style={{ color: '#059669' }}>{formatCurrency(129400000)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Expenses */}
+            <div className="card">
+              <div className="card-header" style={{ background: '#FEF2F2', borderBottom: '1px solid #FECACA' }}>
+                <div className="card-title" style={{ color: '#991B1B' }}>Operating Expenses</div>
+              </div>
+              <div className="card-body">
+                {(() => {
+                  const totalExp = enrichedBalances.filter(b => b.type === 'EXPENSE').reduce((s, b) => s + b.totalDebit, 0);
+                  return (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
+                        <span>Janitorial & Security General Services</span>
+                        <span className="mono" style={{ fontWeight: 700 }}>{formatCurrency(totalExp || 11498489.52)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
+                        <span>IT Hosting & Technical Maintenance Services</span>
+                        <span className="mono" style={{ fontWeight: 700 }}>{formatCurrency(200750)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
+                        <span>Utilities, Electricity & Water Expenses</span>
+                        <span className="mono" style={{ fontWeight: 700 }}>{formatCurrency(850000)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0 0', fontWeight: 800, fontSize: 14 }}>
+                        <span>TOTAL EXPENSES</span>
+                        <span className="mono" style={{ color: '#DC2626' }}>{formatCurrency((totalExp || 11498489.52) + 200750 + 850000)}</span>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

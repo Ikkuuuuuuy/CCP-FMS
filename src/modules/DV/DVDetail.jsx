@@ -71,19 +71,31 @@ export default function DVDetail({ dv, onBack }) {
             <div className="page-title" style={{ fontFamily: 'JetBrains Mono, monospace' }}>{dv.dvNo}</div>
             <div style={{ marginTop: 6 }}><StatusBadge status={dv.status} /></div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {canAdvance && DV_LIFECYCLE.findIndex(s => s.status === dv.status) < DV_LIFECYCLE.length - 1 && dv.status !== 'REJECTED' && (
-              <>
-                <button className="btn btn-danger" onClick={handleReject}>
-                  <XCircle size={14} /> Reject
-                </button>
-                <button className="btn btn-primary" onClick={handleAdvance}>
-                  <ArrowRight size={14} /> Advance Workflow
-                </button>
-              </>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {dv.status !== 'PAID' && dv.status !== 'REJECTED' && (
+              <button className="btn btn-primary" onClick={handleAdvance} style={{
+                background: 'linear-gradient(135deg, #059669, #047857)',
+                color: '#FFF', fontWeight: 700, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8,
+                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
+              }}>
+                <CheckCircle size={15} />
+                <span>
+                  {dv.status === 'PREPARED' || dv.status === 'PENDING_ACCOUNTING' ? 'Certify Supporting Docs (Box A - Accounting)' :
+                   dv.status === 'APPROVED_FOR_PAYMENT' ? 'Approve Payment (Box B - Kaye C. Tinga)' :
+                   'Issue Check & Release Payment (Box C - Cashier)'}
+                </span>
+              </button>
+            )}
+            {dv.status === 'PAID' && (
+              <div style={{
+                padding: '6px 14px', background: '#ECFDF5', border: '1px solid #A7F3D0',
+                borderRadius: 8, fontSize: 12, fontWeight: 800, color: '#065F46', display: 'flex', alignItems: 'center', gap: 6
+              }}>
+                <CheckCircle size={14} /> Paid & Ledger Auto-Posted
+              </div>
             )}
             <button className="btn btn-ghost" onClick={() => window.print()}>
-              <Printer size={14} /> Print
+              <Printer size={14} /> Print DV
             </button>
           </div>
         </div>

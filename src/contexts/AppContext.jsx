@@ -80,8 +80,11 @@ function appReducer(state, action) {
     // =========================================================================
     // DOCUMENT ACTIONS (BUR & DV Unified Workflow)
     // =========================================================================
+    // =========================================================================
+    // DOCUMENT ACTIONS (BUR & DV Decoupled Workflows)
+    // =========================================================================
     case 'DOCUMENT_CREATE': {
-      const { fundCluster, allotmentClass, amount, payee, particulars, responsibilityCenter } = action.payload;
+      const { fundCluster = '101', allotmentClass = 'MOOE', amount } = action.payload;
       const year = getCurrentYear();
       const month = getCurrentMonth();
 
@@ -102,39 +105,16 @@ function appReducer(state, action) {
         ...action.payload,
         id: `bur-${Date.now()}`,
         burNo,
-        status: 'PREPARED',
+        status: 'OBLIGATED', // Immediately obligate upon certification
         createdAt: new Date().toISOString(),
         createdBy: actor.id,
         createdByName: actor.name,
-        history: [{ status: 'PREPARED', actor: actor.name, timestamp: new Date().toISOString(), note: 'BUR created.' }],
+        history: [{ status: 'OBLIGATED', actor: actor.name, timestamp: new Date().toISOString(), note: 'BUR created and certified.' }],
       };
 
-      // Auto-generate DV
-      const dvSeq = state.sequences.dv + 1;
-      const dvNo = generateDVNumber(year, month, dvSeq);
-      
-      const newDV = {
-        id: `dv-${Date.now()}`,
-        dvNo,
-        burRef: newBUR.id,
-        burNo,
-        payeeName: payee || '',
-        address: 'Auto-populated address',
-        mop: 'Check',
-        tin: '',
-        department: responsibilityCenter || '',
-        code: '',
-        description: particulars || '',
-        grossClaim: amount,
-        taxTypes: [],
-        taxDeductions: { totalTax: 0, taxes: [] },
-        netAmount: amount,
-        status: 'PREPARED',
-        createdAt: new Date().toISOString(),
-        createdBy: actor.id,
-        createdByName: actor.name,
-        history: [{ status: 'PREPARED', actor: actor.name, timestamp: new Date().toISOString(), note: 'System generated from BUR.' }],
-      };
+      // Instantly deduct allotment obligation
+      const newAllotments = JSON.parse(JSON.stringify(state.allotments));
+      newAllotments[fundCluster][allotmentClass].obligated += amount;
 
       const { entry: burEntry, newSeq: auditSeq1 } = createAuditEntry(state, {
         actorId: actor.id, actorName: actor.name,
@@ -142,23 +122,154 @@ function appReducer(state, action) {
         documentRef: burNo, newData: newBUR,
       });
 
-      const { entry: dvEntry, newSeq: auditSeq2 } = createAuditEntry({ ...state, sequences: { ...state.sequences, audit: auditSeq1 } }, {
-        actorId: 'system', actorName: 'System',
+      return {
+        ...state,
+        burs: [...state.burs, newBUR],
+        allotments: newAllotments,
+        auditLog: [...state.auditLog, burEntry],
+        sequences: {
+          ...state.sequences,
+          bur: { ...state.sequences.bur, [fcKey]: seqNum },
+          audit: auditSeq1,
+        },
+      };
+    }
+
+    case 'DOCUMENT_CREATE_DV': {
+      const { burRef, payeeName, payeeTIN, address, modeOfPayment, expenseAccountCode, grossClaim, taxTypes, particulars } = action.payload;
+      const year = getCurrentYear();
+      const month = getCurrentMonth();
+
+      // Find linked BUR
+      const bur = state.burs.find(b => b.burNo === burRef || b.id === burRef);
+      if (!bur) throw new Error('Selected BUR reference not found.');
+
+      // Calculate tax deductions
+      const taxDed = computeTaxDeductions(grossClaim, taxTypes || ['EWT_2PCT', 'FINAL_VAT']);
+
+      const dvSeq = state.sequences.dv + 1;
+      const dvNo = generateDVNumber(year, month, dvSeq);
+
+      const newDV = {
+        id: `dv-${Date.now()}`,
+        dvNo,
+        burRef: bur.burNo,
+        burId: bur.id,
+        payeeName: payeeName || bur.payeeName,
+        payeeTIN: payeeTIN || bur.payeeTIN || '000-000-000-000',
+        address: address || bur.address || 'CCP Complex, Roxas Blvd, Pasay City',
+        modeOfPayment: modeOfPayment || 'Check',
+        department: bur.office || bur.responsibilityCenter || '08',
+        expenseAccountCode: expenseAccountCode || bur.accountCode || '5021202000',
+        description: particulars || bur.particulars,
+        grossClaim,
+        taxTypes: taxTypes || ['EWT_2PCT', 'FINAL_VAT'],
+        taxDeductions: taxDed,
+        netAmount: taxDed.netAmount,
+        status: 'PENDING_ACCOUNTING',
+        createdAt: new Date().toISOString(),
+        createdBy: actor.id,
+        createdByName: actor.name,
+        history: [{ status: 'PENDING_ACCOUNTING', actor: actor.name, timestamp: new Date().toISOString(), note: 'DV created linked to BUR.' }],
+      };
+
+      const { entry: dvEntry, newSeq: auditSeq } = createAuditEntry(state, {
+        actorId: actor.id, actorName: actor.name,
         module: 'DV', actionType: 'CREATE',
         documentRef: dvNo, newData: newDV,
       });
 
       return {
         ...state,
-        burs: [...state.burs, newBUR],
         dvs: [...state.dvs, newDV],
-        auditLog: [...state.auditLog, burEntry, dvEntry],
+        auditLog: [...state.auditLog, dvEntry],
         sequences: {
           ...state.sequences,
-          bur: { ...state.sequences.bur, [fcKey]: seqNum },
           dv: dvSeq,
-          audit: auditSeq2,
+          audit: auditSeq,
         },
+      };
+    }
+
+    case 'DV_ADVANCE': {
+      const { id } = action.payload;
+      const dIdx = state.dvs.findIndex(d => d.id === id);
+      if (dIdx === -1) throw new Error('DV not found.');
+      const dv = state.dvs[dIdx];
+
+      const transitions = {
+        PREPARED: 'PENDING_ACCOUNTING',
+        PENDING_ACCOUNTING: 'APPROVED_FOR_PAYMENT',
+        APPROVED_FOR_PAYMENT: 'PAID',
+      };
+
+      const nextStatus = transitions[dv.status];
+      if (!nextStatus) throw new Error(`DV cannot be advanced from status: ${dv.status}`);
+
+      const now = new Date().toISOString();
+      let newJournalEntries = state.journalEntries;
+      let newSequences = state.sequences;
+      let newAllotments = state.allotments;
+
+      // On PAID: Post General Ledger Journal Entry & Record Disbursement
+      if (nextStatus === 'PAID') {
+        const jeSeq = state.sequences.je + 1;
+        const jeNo = generateJENumber(getCurrentYear(), jeSeq);
+        const lines = buildDVPaymentJournalEntry(dv);
+
+        validateJournalEntry(lines);
+
+        const journalEntry = {
+          id: `je-${Date.now()}`,
+          je_id: jeNo,
+          reference: dv.dvNo,
+          date: getTodayISO(),
+          description: `DV Payment — ${dv.payeeName} (${dv.dvNo})`,
+          lines,
+          postedBy: actor.id,
+          postedByName: actor.name,
+          postedAt: now,
+          source: 'DV_AUTO_POST',
+        };
+
+        newJournalEntries = [...state.journalEntries, journalEntry];
+        newSequences = { ...newSequences, je: jeSeq };
+
+        // Update disbursed on allotment
+        const bur = state.burs.find(b => b.burNo === dv.burRef || b.id === dv.burRef);
+        if (bur) {
+          newAllotments = JSON.parse(JSON.stringify(newAllotments));
+          newAllotments[bur.fundCluster][bur.allotmentClass].disbursed += dv.grossClaim;
+        }
+      }
+
+      const updatedDv = {
+        ...dv,
+        status: nextStatus,
+        ...(nextStatus === 'PAID' && {
+          paidAt: now, paidBy: actor.id,
+          checkNo: '527225', checkDate: 'July 28, 2026', bankName: 'LANDBANK',
+          receivedByName: 'REYMART P. CASTILO', receivedDate: 'July 29, 2026'
+        }),
+        history: [...dv.history, { status: nextStatus, actor: actor.name, timestamp: now, note: `Advanced to ${nextStatus}` }],
+      };
+
+      const { entry: dvAudit, newSeq: auditSeq } = createAuditEntry(state, {
+        actorId: actor.id, actorName: actor.name,
+        module: 'DV', actionType: nextStatus === 'PAID' ? 'PAID' : 'ADVANCE',
+        documentRef: dv.dvNo, oldData: { status: dv.status }, newData: { status: nextStatus },
+      });
+
+      const newDVs = [...state.dvs];
+      newDVs[dIdx] = updatedDv;
+
+      return {
+        ...state,
+        dvs: newDVs,
+        journalEntries: newJournalEntries,
+        allotments: newAllotments,
+        auditLog: [...state.auditLog, dvAudit],
+        sequences: { ...newSequences, audit: auditSeq },
       };
     }
 

@@ -72,19 +72,32 @@ export default function BURDetail({ bur, onBack }) {
               <StatusBadge status={bur.status} />
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            {canAdvance && BUR_LIFECYCLE.findIndex(s => s.status === bur.status) < BUR_LIFECYCLE.length - 1 && bur.status !== 'REJECTED' && (
-              <>
-                <button className="btn btn-danger" onClick={handleReject}>
-                  <XCircle size={14} /> Reject
-                </button>
-                <button className="btn btn-primary" onClick={handleAdvance}>
-                  <Send size={14} /> Advance Workflow
-                </button>
-              </>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'center' }}>
+            {bur.status !== 'REJECTED' && bur.status !== 'OBLIGATED' && (
+              <button className="btn btn-primary" onClick={handleAdvance} style={{
+                background: 'linear-gradient(135deg, #059669, #047857)',
+                color: '#FFF', fontWeight: 700, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8,
+                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
+              }}>
+                <CheckCircle size={15} />
+                <span>
+                  {bur.status === 'PREPARED' ? 'Sign & Submit Box A (Requesting Office)' :
+                   bur.status === 'FORWARDED_TO_TREASURY' ? 'Certify Budget Allotment (Box B)' :
+                   bur.status === 'FOR_APPROVAL_OP' ? 'Approve Allotment (Kaye C. Tinga)' :
+                   'Certify & Obligate BUR'}
+                </span>
+              </button>
+            )}
+            {bur.status === 'OBLIGATED' && (
+              <div style={{
+                padding: '6px 14px', background: '#ECFDF5', border: '1px solid #A7F3D0',
+                borderRadius: 8, fontSize: 12, fontWeight: 800, color: '#065F46', display: 'flex', alignItems: 'center', gap: 6
+              }}>
+                <CheckCircle size={14} /> Obligated & Certified
+              </div>
             )}
             <button className="btn btn-ghost" onClick={() => window.print()}>
-              <Printer size={14} /> Print
+              <Printer size={14} /> Print BUR
             </button>
           </div>
         </div>

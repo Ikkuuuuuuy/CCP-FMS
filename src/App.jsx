@@ -17,6 +17,7 @@ import './styles/index.css';
 function AppShell() {
   const { state } = useApp();
   const [activePage, setActivePage] = useState('dashboard');
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Show login if not authenticated
   if (!state.currentUser) {
@@ -40,9 +41,24 @@ function AppShell() {
 
   return (
     <div className="app-shell">
-      <Sidebar activePage={activePage} onNavigate={setActivePage} />
+      <Sidebar
+        activePage={activePage}
+        onNavigate={(page) => {
+          setActivePage(page);
+          setMobileOpen(false);
+        }}
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
+      />
       <div className="main-content">
-        <TopBar activePage={activePage} onNavigate={setActivePage} />
+        <TopBar
+          activePage={activePage}
+          onNavigate={(page) => {
+            setActivePage(page);
+            setMobileOpen(false);
+          }}
+          onToggleMobile={() => setMobileOpen(!mobileOpen)}
+        />
         {renderPage()}
       </div>
     </div>

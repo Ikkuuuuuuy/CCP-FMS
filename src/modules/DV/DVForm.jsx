@@ -116,25 +116,42 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
               <div className="card-header"><div className="card-title">BUR Reference (Obligation Link)</div></div>
               <div className="card-body">
                 <div className="form-group">
-                  <label className="form-label">Linked BUR No.</label>
-                  <select className="form-control" value={form.burRef} onChange={set('burRef')}>
-                    <option value="">— No BUR reference (unlinked) —</option>
+                  <label className="form-label">Linked BUR No. (Obligation Reference)</label>
+                  <select className="form-control" value={form.burRef} onChange={(e) => {
+                    const refNo = e.target.value;
+                    const foundBUR = obligatedBURs.find((b) => b.burNo === refNo || b.id === refNo);
+                    if (foundBUR) {
+                      setForm((f) => ({
+                        ...f,
+                        burRef: foundBUR.burNo,
+                        payeeName: foundBUR.payeeName || f.payeeName,
+                        address: foundBUR.address || f.address,
+                        particulars: foundBUR.particulars || foundBUR.description || f.particulars,
+                        expenseAccountCode: foundBUR.accountCode || f.expenseAccountCode,
+                        grossClaim: foundBUR.amount || f.grossClaim,
+                      }));
+                    } else {
+                      setForm((f) => ({ ...f, burRef: refNo }));
+                    }
+                  }}>
+                    <option value="">— Select an Obligated BUR to link —</option>
                     {obligatedBURs.map((b) => (
                       <option key={b.id} value={b.burNo}>
-                        {b.burNo} · {b.responsibilityCenter} · {formatCurrency(b.amount)}
+                        {b.burNo} · {b.payeeName || b.office} · {formatCurrency(b.amount)}
                       </option>
                     ))}
                   </select>
-                  <div className="form-hint">Link to an obligated BUR for proper obligation tracking.</div>
+                  <div className="form-hint">Selecting an obligated BUR auto-fills payee details, particulars, and account code.</div>
                 </div>
                 {selectedBUR && (
                   <div style={{
                     padding: 12, background: '#ECFDF5', border: '1px solid #A7F3D0',
                     borderRadius: 8, fontSize: 12, color: '#065F46',
                   }}>
-                    <div style={{ fontWeight: 700, marginBottom: 4 }}>{selectedBUR.burNo}</div>
-                    <div>{selectedBUR.responsibilityCenter} · {selectedBUR.allotmentClass}</div>
-                    <div style={{ marginTop: 4 }}>Obligated: <strong>{formatCurrency(selectedBUR.amount)}</strong></div>
+                    <div style={{ fontWeight: 700, marginBottom: 4 }}>✓ Linked to {selectedBUR.burNo}</div>
+                    <div>Payee: <strong>{selectedBUR.payeeName}</strong></div>
+                    <div>Office: {selectedBUR.office || selectedBUR.responsibilityCenter} · Allotment: {selectedBUR.allotmentClass}</div>
+                    <div style={{ marginTop: 4 }}>Total Obligated Budget: <strong>{formatCurrency(selectedBUR.amount)}</strong></div>
                   </div>
                 )}
                 <div className="form-group" style={{ marginTop: 12, marginBottom: 0 }}>
