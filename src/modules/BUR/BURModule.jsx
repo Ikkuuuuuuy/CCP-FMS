@@ -164,7 +164,6 @@ export default function BURModule() {
           <thead>
             <tr>
               <th>BUR No.</th>
-              <th>Fund Cluster</th>
               <th>Responsibility Center</th>
               <th>MFO/PAP</th>
               <th>Allotment Class</th>
@@ -177,7 +176,7 @@ export default function BURModule() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={9}>
+                <td colSpan={8}>
                   <div className="grid-empty">
                     <div className="grid-empty-icon">📄</div>
                     <div className="grid-empty-text">No BURs found</div>
@@ -191,12 +190,6 @@ export default function BURModule() {
               filtered.map((bur) => (
                 <tr key={bur.id} onClick={() => { setSelectedBUR(bur); setView('detail'); }}>
                   <td className="mono">{bur.burNo}</td>
-                  <td>
-                    <span style={{
-                      fontSize: 11, fontWeight: 700, padding: '2px 8px',
-                      background: '#F3F4F6', borderRadius: 4, fontFamily: 'JetBrains Mono, monospace',
-                    }}>FC-{bur.fundCluster}</span>
-                  </td>
                   <td>{bur.responsibilityCenter}</td>
                   <td style={{ fontSize: 12, color: '#6B7280' }}>{bur.mfoPap}</td>
                   <td>

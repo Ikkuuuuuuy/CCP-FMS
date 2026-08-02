@@ -81,14 +81,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
             <div className="card">
               <div className="card-header"><div className="card-title">Fund Classification</div></div>
               <div className="card-body">
-                <div className="form-group">
-                  <label className="form-label">Fund Cluster <span className="required">*</span></label>
-                  <select className="form-control" value={form.fundCluster} onChange={set('fundCluster')}>
-                    {FUND_CLUSTERS.map((fc) => (
-                      <option key={fc.code} value={fc.code}>{fc.code} — {fc.name}</option>
-                    ))}
-                  </select>
-                </div>
+
 
                 <div className="form-group">
                   <label className="form-label">Allotment Class <span className="required">*</span></label>

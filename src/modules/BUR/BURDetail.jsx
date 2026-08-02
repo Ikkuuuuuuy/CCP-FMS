@@ -108,7 +108,6 @@ export default function BURDetail({ bur, onBack }) {
             <div className="card-body">
               {[
                 ['BUR Number', bur.burNo, true],
-                ['Fund Cluster', `FC-${bur.fundCluster}`, false],
                 ['Allotment Class', bur.allotmentClass, false],
                 ['Account Code', bur.accountCode, true],
                 ['Responsibility Center', bur.responsibilityCenter, false],

@@ -199,7 +199,6 @@ export default function TransactionLogsModule() {
               <th style={{ padding: '12px 18px', fontWeight: 700 }}>Transaction Ref</th>
               <th style={{ padding: '12px 18px', fontWeight: 700 }}>Type</th>
               <th style={{ padding: '12px 18px', fontWeight: 700 }}>Payee / Office / Account</th>
-              <th style={{ padding: '12px 18px', fontWeight: 700 }}>Fund Cluster</th>
               <th style={{ padding: '12px 18px', fontWeight: 700 }}>Date & Time</th>
               <th style={{ padding: '12px 18px', fontWeight: 700 }}>Status</th>
               <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'right' }}>Amount</th>
@@ -238,9 +237,6 @@ export default function TransactionLogsModule() {
                   </td>
                   <td style={{ padding: '14px 18px', fontWeight: 600, color: '#111827' }}>
                     {log.payee}
-                  </td>
-                  <td style={{ padding: '14px 18px', fontFamily: 'monospace', fontSize: '12px', color: '#4B5563' }}>
-                    Cluster {log.fundCluster}
                   </td>
                   <td style={{ padding: '14px 18px', color: '#6B7280', fontSize: '12px' }}>
                     {log.date}

@@ -133,7 +133,7 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
                     borderRadius: 8, fontSize: 12, color: '#065F46',
                   }}>
                     <div style={{ fontWeight: 700, marginBottom: 4 }}>{selectedBUR.burNo}</div>
-                    <div>{selectedBUR.responsibilityCenter} · FC-{selectedBUR.fundCluster} · {selectedBUR.allotmentClass}</div>
+                    <div>{selectedBUR.responsibilityCenter} · {selectedBUR.allotmentClass}</div>
                     <div style={{ marginTop: 4 }}>Obligated: <strong>{formatCurrency(selectedBUR.amount)}</strong></div>
                   </div>
                 )}
