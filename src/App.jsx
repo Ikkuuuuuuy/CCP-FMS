@@ -26,7 +26,7 @@ function AppShell() {
 
   const renderPage = () => {
     switch (activePage) {
-      case 'dashboard':    return <Dashboard />;
+      case 'dashboard':    return <Dashboard onNavigate={setActivePage} />;
       case 'reports':      return <ReportsModule />;
       case 'bur':          return <BURModule />;
       case 'dv':           return <DVModule />;

@@ -8,17 +8,17 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 
-// Sample data matching wireframe budget utilization trend line
+// Sample data matching wireframe budget utilization trend line (FY 2026)
 const TREND_DATA = [
-  { date: 'Oct 1', amount: 30000000 },
-  { date: 'Oct 3', amount: 110000000 },
-  { date: 'Oct 6', amount: 65000000 },
-  { date: 'Oct 10', amount: 165000000 },
-  { date: 'Oct 12', amount: 115000000 },
-  { date: 'Oct 18', amount: 220000000 },
-  { date: 'Oct 21', amount: 140000000 },
-  { date: 'Oct 24', amount: 175000000 },
-  { date: 'Oct 25', amount: 235000000 },
+  { date: 'Aug 1', amount: 30000000 },
+  { date: 'Aug 3', amount: 110000000 },
+  { date: 'Aug 6', amount: 65000000 },
+  { date: 'Aug 10', amount: 165000000 },
+  { date: 'Aug 12', amount: 115000000 },
+  { date: 'Aug 18', amount: 220000000 },
+  { date: 'Aug 21', amount: 140000000 },
+  { date: 'Aug 24', amount: 175000000 },
+  { date: 'Aug 25', amount: 235000000 },
 ];
 
 // Donut chart spending category breakdown matching wireframe percentages & colors
@@ -31,43 +31,43 @@ const SPENDING_DATA = [
   { name: 'Others', value: 5, color: '#EC4899' },
 ];
 
-// Audit log activity list matching wireframe
+// Audit log activity list matching FY 2026
 const AUDIT_ACTIVITY = [
-  { timestamp: '2023-12-23 10:43', user: 'Jose Reyes (Admin)', module: 'Ledger', action: 'Entry Posted', details: 'P-Entry #L1001' },
-  { timestamp: '2023-12-23 13:53', user: 'Maria Dela Cruz (Accountant)', module: 'Disbursement Voucher', action: 'Voucher Approved', details: 'DV-#DV5001 (₱250,000)' },
-  { timestamp: '2023-12-23 10:53', user: 'Benigno Santos (Clerk)', module: 'BUR', action: 'Request Created', details: 'BUR-#B7001 (₱1,200,000)' },
-  { timestamp: '2023-12-23 20:53', user: 'Admin (System)', module: 'Report Generations', action: 'Annual Report', details: 'E-Generated' },
+  { timestamp: '2026-08-01 10:43', user: 'Jose Reyes (Admin)', module: 'Ledger', action: 'Entry Posted', details: 'P-Entry #L1001' },
+  { timestamp: '2026-08-02 13:53', user: 'Maria Santos (Budget Officer)', module: 'Disbursement Voucher', action: 'Voucher Approved', details: 'DV-#26-08-0001 (₱200,750)' },
+  { timestamp: '2026-08-02 15:10', user: 'Lourdes S. Mendoza (FSD)', module: 'BUR', action: 'Request Certified', details: 'BUR-#26-01-0023 (₱11,498,489)' },
+  { timestamp: '2026-08-03 09:15', user: 'Admin (System)', module: 'Report Generations', action: 'Financial Performance', details: 'Generated' },
 ];
 
 // Items requiring action matching wireframe
 const ACTION_ITEMS = [
   {
-    title: 'BUR-#B7001 | ₱1,200,000',
-    subtitle: 'Program: CCP Dance Series',
+    title: 'BUR-#26-01-0023 | ₱11,498,489.52',
+    subtitle: 'Payee: LSERV Corporation',
     actionText: 'Review',
     btnBg: '#FFFBEB',
     btnColor: '#D97706',
     btnBorder: '#FDE68A',
   },
   {
-    title: 'DV-#DV5002 | ₱250,000',
-    subtitle: 'Payee: Local Printer Co.',
+    title: 'DV-#07-0302-26 | ₱188,203.13',
+    subtitle: 'Payee: Sophies IT Services',
     actionText: 'Process Payment',
     btnBg: '#FEF2F2',
     btnColor: '#DC2626',
     btnBorder: '#FECACA',
   },
   {
-    title: 'Ledger Adjustment',
-    subtitle: 'Unposted: Journal Entry #J3002',
+    title: 'General Ledger Balancing',
+    subtitle: 'MDS Cash vs AP Journal Posting',
     actionText: 'Verify',
     btnBg: '#F5F3FF',
     btnColor: '#7C3AED',
     btnBorder: '#DDD6FE',
   },
   {
-    title: 'User Creation',
-    subtitle: 'Accountant role',
+    title: 'GovPKI Digital Certificate',
+    subtitle: 'Accountant role authorization',
     actionText: 'Approve User',
     btnBg: '#EFF6FF',
     btnColor: '#2563EB',
@@ -75,9 +75,10 @@ const ACTION_ITEMS = [
   },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({ onNavigate }) {
   const { dispatch } = useApp();
-  const [selectedPeriod, setSelectedPeriod] = useState('October 2023');
+  const [selectedPeriod, setSelectedPeriod] = useState('FY 2026 (August 2026)');
+  const [showQuickActions, setShowQuickActions] = useState(false);
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -91,24 +92,69 @@ export default function Dashboard() {
               onChange={(e) => setSelectedPeriod(e.target.value)}
               style={{
                 appearance: 'none', backgroundColor: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '6px',
-                padding: '7px 32px 7px 12px', fontSize: '12px', fontWeight: 600, color: '#374151', cursor: 'pointer', outline: 'none'
+                padding: '7px 32px 7px 12px', fontSize: '12px', fontWeight: 700, color: '#374151', cursor: 'pointer', outline: 'none'
               }}
             >
-              <option value="October 2023">This Period: October 2023</option>
-              <option value="November 2023">This Period: November 2023</option>
-              <option value="December 2023">This Period: December 2023</option>
+              <option value="FY 2026 (August 2026)">This Period: FY 2026 (August 2026)</option>
+              <option value="FY 2026 (Q3 July-Sept)">This Period: FY 2026 (Q3 July-Sept)</option>
+              <option value="FY 2026 (Full Year)">This Period: FY 2026 (Full Year GAA)</option>
             </select>
             <ChevronDown size={14} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
           </div>
 
-          {/* Quick Action Dropdown */}
-          <button style={{
-            display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#FFFFFF', border: '1px solid #D1D5DB',
-            borderRadius: '6px', padding: '7px 12px', fontSize: '12px', fontWeight: 600, color: '#374151', cursor: 'pointer'
-          }}>
-            <span>Quick Action</span>
-            <ChevronDown size={14} style={{ color: '#9CA3AF' }} />
-          </button>
+          {/* Quick Action Interactive Dropdown */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowQuickActions(!showQuickActions)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#8C1515', border: '1px solid #7A1010',
+                borderRadius: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: 700, color: '#FFFFFF', cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(140, 21, 21, 0.25)'
+              }}
+            >
+              <span>Quick Action</span>
+              <ChevronDown size={14} style={{ color: '#FDE68A' }} />
+            </button>
+
+            {showQuickActions && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 6px)', left: 0, width: '240px', backgroundColor: '#FFFFFF',
+                border: '1px solid #E5E7EB', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                zIndex: 150, overflow: 'hidden'
+              }}>
+                <div
+                  onClick={() => { onNavigate?.('bur'); setShowQuickActions(false); }}
+                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
+                >
+                  ➕ New BUR (Budget Request)
+                </div>
+                <div
+                  onClick={() => { onNavigate?.('dv'); setShowQuickActions(false); }}
+                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
+                >
+                  💳 New Disbursement Voucher (DV)
+                </div>
+                <div
+                  onClick={() => { onNavigate?.('reports'); setShowQuickActions(false); }}
+                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
+                >
+                  📊 View Financial Reports
+                </div>
+                <div
+                  onClick={() => { onNavigate?.('ledger'); setShowQuickActions(false); }}
+                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
+                >
+                  📒 Open Credit & Collections
+                </div>
+                <div
+                  onClick={() => { onNavigate?.('users'); setShowQuickActions(false); }}
+                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer' }}
+                >
+                  👥 Manage Personnel Access
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
