@@ -76,9 +76,34 @@ const ACTION_ITEMS = [
 ];
 
 export default function Dashboard({ onNavigate }) {
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
+  const { burs = [], dvs = [], journalEntries = [], allotments = {}, auditLog = [] } = state;
   const [selectedPeriod, setSelectedPeriod] = useState('FY 2026 (August 2026)');
   const [showQuickActions, setShowQuickActions] = useState(false);
+
+  // Compute Live Allotment & Obligation Metrics
+  const regMOOE = allotments['101']?.['MOOE'] || { total: 106600000, obligated: 98500000 };
+  const totalAllotment = regMOOE.total;
+  const totalObligated = regMOOE.obligated;
+  const availableBudget = totalAllotment - totalObligated;
+  const utilizationPct = Math.round((totalObligated / totalAllotment) * 100);
+
+  // Compute Live Pending Counts
+  const pendingBURCount = burs.filter((b) => b.status !== 'OBLIGATED').length;
+  const pendingDVCount = dvs.filter((d) => d.status !== 'PAID').length;
+  const totalJournalEntries = journalEntries.length;
+
+  // Merge Live Audit Logs with Seed Feeds
+  const liveAuditActivity = [
+    ...(auditLog || []).slice(-4).reverse().map((a) => ({
+      timestamp: a.timestamp ? new Date(a.timestamp).toLocaleString() : '2026-08-03 09:00',
+      user: a.actor_name || 'System User',
+      module: a.module || 'Audit',
+      action: a.action_type || 'UPDATE',
+      details: a.document_ref || 'Ref',
+    })),
+    ...AUDIT_ACTIVITY
+  ].slice(0, 4);
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -158,45 +183,56 @@ export default function Dashboard({ onNavigate }) {
         </div>
       </div>
 
-      {/* === TOP KPI CARDS (4 Cards Grid) === */}
+      {/* === TOP KPI CARDS (4 Cards Grid - Connected to Live State) === */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
         {/* Card 1: Available Budget */}
         <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: '12px', fontWeight: 700, color: '#4B5563', marginBottom: '4px' }}>Available Budget (Current Year)</div>
-          <div style={{ fontSize: '26px', fontWeight: 900, color: '#BFA046', letterSpacing: '-0.02em', marginBottom: '2px' }}>₱125,500,000</div>
-          <div style={{ fontSize: '12px', fontWeight: 600, color: '#6B7280' }}>85% Utilized</div>
+          <div style={{ fontSize: '26px', fontWeight: 900, color: '#BFA046', letterSpacing: '-0.02em', marginBottom: '2px' }}>
+            {formatCurrency(availableBudget)}
+          </div>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: '#6B7280' }}>{utilizationPct}% Utilized</div>
         </div>
 
         {/* Card 2: Pending BURs */}
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div
+          onClick={() => onNavigate?.('bur')}
+          style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', cursor: 'pointer' }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#4B5563' }}>Pending BURs</div>
             <div style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>Review Queued</div>
           </div>
           <div style={{ fontSize: '26px', fontWeight: 900, color: '#D97706', letterSpacing: '-0.02em' }}>
-            18 <span style={{ fontSize: '18px', fontWeight: 700, opacity: 0.85 }}>BURs</span>
+            {pendingBURCount} <span style={{ fontSize: '18px', fontWeight: 700, opacity: 0.85 }}>BURs</span>
           </div>
         </div>
 
         {/* Card 3: Pending Disbursement Vouchers */}
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div
+          onClick={() => onNavigate?.('dv')}
+          style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', cursor: 'pointer' }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#4B5563' }}>Pending Disbursement Vouchers</div>
             <div style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>(For Payment)</div>
           </div>
           <div style={{ fontSize: '26px', fontWeight: 900, color: '#DC2626', letterSpacing: '-0.02em' }}>
-            25 <span style={{ fontSize: '18px', fontWeight: 700, opacity: 0.85 }}>Vouchers</span>
+            {pendingDVCount} <span style={{ fontSize: '18px', fontWeight: 700, opacity: 0.85 }}>Vouchers</span>
           </div>
         </div>
 
         {/* Card 4: Ledger Entries */}
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div
+          onClick={() => onNavigate?.('ledger')}
+          style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', cursor: 'pointer' }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#4B5563' }}>Ledger Entries</div>
             <div style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>Verification Needed</div>
           </div>
           <div style={{ fontSize: '26px', fontWeight: 900, color: '#7C3AED', letterSpacing: '-0.02em' }}>
-            55 <span style={{ fontSize: '18px', fontWeight: 700, opacity: 0.85 }}>Entries</span>
+            {totalJournalEntries} <span style={{ fontSize: '18px', fontWeight: 700, opacity: 0.85 }}>Entries</span>
           </div>
         </div>
       </div>
@@ -302,7 +338,7 @@ export default function Dashboard({ onNavigate }) {
                 </tr>
               </thead>
               <tbody>
-                {AUDIT_ACTIVITY.map((row, index) => (
+                {liveAuditActivity.map((row, index) => (
                   <tr key={index} style={{ borderBottom: '1px solid #F3F4F6' }}>
                     <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: '#4B5563', whiteSpace: 'nowrap' }}>{row.timestamp}</td>
                     <td style={{ padding: '10px 12px', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap' }}>{row.user}</td>
