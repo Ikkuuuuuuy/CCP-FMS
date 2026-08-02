@@ -87,24 +87,23 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
               <div className="card-body">
                 <div className="form-group">
                   <label className="form-label">Payee Name <span className="required">*</span></label>
-                  <input type="text" className="form-control" placeholder="Full name or business name"
+                  <input type="text" required className="form-control" placeholder="Full name or business name"
                     value={form.payeeName} onChange={set('payeeName')} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Payee TIN</label>
-                  <input type="text" className="form-control" placeholder="000-000-000-000"
+                  <label className="form-label">Payee TIN <span className="required">*</span></label>
+                  <input type="text" required className="form-control" placeholder="000-000-000-000"
                     value={form.payeeTIN} onChange={set('payeeTIN')} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Address</label>
-                  <input type="text" className="form-control" placeholder="Full address"
+                  <label className="form-label">Address <span className="required">*</span></label>
+                  <input type="text" required className="form-control" placeholder="Full address"
                     value={form.address} onChange={set('address')} />
                 </div>
                 <div className="form-group mb-0">
                   <label className="form-label">Mode of Payment <span className="required">*</span></label>
                   <select className="form-control" value={form.modeOfPayment} onChange={set('modeOfPayment')}>
                     <option value="Check">Check</option>
-                    <option value="LDDAP-ADA">LDDAP-ADA (List of Due and Demandable)</option>
                     <option value="Cash">Cash</option>
                     <option value="Others">Others</option>
                   </select>
