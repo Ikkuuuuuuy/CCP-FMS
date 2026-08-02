@@ -70,30 +70,53 @@ export default function ReportsModule() {
         </button>
       </div>
 
-      {/* Report Selector */}
-      <div className="card no-print mb-6" style={{ padding: 0 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0 }}>
-          {REPORTS.map((report, i) => (
-            <div
-              key={report.id}
-              onClick={() => setActiveReport(report.id)}
+      {/* Sleek Report Selector Dropdown Bar */}
+      <div className="card no-print mb-6" style={{ padding: '16px 20px', background: '#FFFFFF', border: '1px solid #E8E2D9' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: 'linear-gradient(135deg, #8C1515, #7A1010)',
+              color: '#D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(140,21,21,0.25)'
+            }}>
+              {React.createElement(REPORTS.find(r => r.id === activeReport)?.icon || FileText, { size: 20 })}
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#8C1515', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                Active Report Module
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#111827' }}>
+                {REPORTS.find(r => r.id === activeReport)?.label}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ minWidth: '320px', flex: 1, maxWidth: '450px' }}>
+            <select
+              value={activeReport}
+              onChange={(e) => setActiveReport(e.target.value)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '16px 20px', cursor: 'pointer',
-                background: activeReport === report.id ? 'rgba(212,175,55,0.06)' : 'white',
-                borderRight: i < REPORTS.length - 1 ? '1px solid #E5E7EB' : 'none',
-                borderBottom: activeReport === report.id ? `3px solid #D4AF37` : '3px solid transparent',
-                transition: 'all 150ms',
+                width: '100%',
+                padding: '10px 14px',
+                fontSize: '13.5px',
+                fontWeight: 700,
+                color: '#1A1209',
+                backgroundColor: '#FDFBF7',
+                border: '1.5px solid #BFA046',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                outline: 'none',
+                boxShadow: '0 2px 6px rgba(191, 160, 70, 0.15)'
               }}
             >
-              <report.icon size={20} style={{ color: activeReport === report.id ? '#D4AF37' : '#6B7280' }} />
-              <span style={{
-                fontWeight: activeReport === report.id ? 700 : 500,
-                color: activeReport === report.id ? '#111827' : '#6B7280',
-                fontSize: 13,
-              }}>{report.label}</span>
-            </div>
-          ))}
+              {REPORTS.map((r) => (
+                <option key={r.id} value={r.id}>
+                  📊 {r.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
