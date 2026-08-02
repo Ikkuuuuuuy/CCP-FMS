@@ -8,37 +8,56 @@ function CCPOfficialEmblem({ size = 80 }) {
   const [dataUrl, setDataUrl] = useState(null);
 
   useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.src = '/ccp-official-logo.png';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const cropHeight = Math.floor(img.height * 0.72);
-      canvas.width = img.width;
-      canvas.height = cropHeight;
+    try {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = '/ccp-official-logo.png';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const cropHeight = Math.floor(img.height * 0.72);
+          canvas.width = img.width;
+          canvas.height = cropHeight;
 
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, img.width, cropHeight, 0, 0, img.width, cropHeight);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, img.width, cropHeight, 0, 0, img.width, cropHeight);
 
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imgData.data;
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imgData.data;
 
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        if (r > 190 && g > 190 && b > 190) {
-          data[i + 3] = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            if (r > 190 && g > 190 && b > 190) {
+              data[i + 3] = 0;
+            }
+          }
+
+          ctx.putImageData(imgData, 0, 0);
+          setDataUrl(canvas.toDataURL());
+        } catch (e) {
+          setDataUrl('/ccp-official-logo.png');
         }
-      }
-
-      ctx.putImageData(imgData, 0, 0);
-      setDataUrl(canvas.toDataURL());
-    };
+      };
+      img.onerror = () => {
+        setDataUrl('/ccp-official-logo.png');
+      };
+    } catch (e) {
+      setDataUrl('/ccp-official-logo.png');
+    }
   }, []);
 
   if (!dataUrl) {
-    return <div style={{ width: `${size}px`, height: `${size}px`, margin: '0 auto' }} />;
+    return (
+      <div style={{
+        width: `${size}px`, height: `${size}px`, margin: '0 auto', borderRadius: '50%',
+        background: 'linear-gradient(135deg, #D4AF37, #BFA046)', display: 'flex',
+        alignItems: 'center', justifyContent: 'center', color: '#8C1515', fontWeight: 900, fontSize: 24
+      }}>
+        CCP
+      </div>
+    );
   }
 
   return (
