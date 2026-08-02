@@ -1,0 +1,207 @@
+// =============================================================================
+// Prisma Schema — Cultural Center of the Philippines (CCP-FMS)
+// Database Provider: PostgreSQL
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// 1. User Management & Auth Roles
+// -----------------------------------------------------------------------------
+enum SystemRole {
+  IT_ADMIN
+  BUDGET_OFFICER
+  DIVISION_CHIEF
+  TREASURY
+  BOOKKEEPER
+}
+
+model User {
+  id          String     @id @default(uuid())
+  name        String
+  email       String     @unique
+  role        SystemRole @default(BUDGET_OFFICER)
+  department  String     @default("Financial Services Division")
+  status      String     @default("Active") // "Active" | "Inactive"
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  auditLogs   AuditLog[] @relation("ActorAuditLogs")
+
+  @@map("users")
+}
+
+// -----------------------------------------------------------------------------
+// 2. Budget Utilization Request (BUR)
+// -----------------------------------------------------------------------------
+enum BURStatus {
+  DRAFT
+  PREPARED
+  FORWARDED_TO_TREASURY
+  FOR_APPROVAL_OP
+  APPROVED
+  OBLIGATED
+  REJECTED
+}
+
+model BUR {
+  id                   String     @id @default(uuid())
+  burNo                String     @unique // YY-MM-SSSS (e.g. 26-08-0001)
+  fundCluster          String     @default("101")
+  fundClusterName      String     @default("REGULAR")
+  responsibilityCenter String     @default("08")
+  office               String     @default("Administrative Services")
+  mfoPap               String
+  allotmentClass       String     @default("MOOE")
+  accountCode          String     @default("5021202000")
+  amount               Float
+  payeeName            String
+  payeeTIN             String?
+  address              String?
+  modeOfPayment        String     @default("Check")
+  particulars          String
+  purpose              String?
+  reference            String?
+  rejectionReason      String?
+  status               BURStatus  @default(PREPARED)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  certifiedByName      String?    @default("KAYE C. TINGA")
+  certifiedByPosition  String?    @default("President")
+  approvedByName       String?    @default("LOURDES S. MENDOZA")
+  approvedByPosition   String?    @default("Department Manager III, FSD")
+
+  disbursementVoucher  DisbursementVoucher?
+
+  @@map("burs")
+}
+
+// -----------------------------------------------------------------------------
+// 3. Disbursement Voucher (DV)
+// -----------------------------------------------------------------------------
+enum DVStatus {
+  PREPARED
+  FORWARDED_TO_TREASURY
+  PENDING_ACCOUNTING
+  CERTIFIED_FUNDS
+  APPROVED_FOR_PAYMENT
+  PAID
+  REJECTED
+}
+
+model DisbursementVoucher {
+  id                 String    @id @default(uuid())
+  dvNo               String    @unique // MM-SSSS-YY (e.g. 07-0302-26)
+  burId              String?   @unique
+  bur                BUR?      @relation(fields: [burId], references: [id])
+  burRef             String?   // Store BUR No. string representation
+  modeOfPayment      String    @default("Check") // "Check" | "Cash" | "Others"
+  payeeName          String
+  payeeTIN           String?
+  address            String?
+  department         String    @default("CCD")
+  expenseAccountCode String    @default("13")
+  description        String
+  grossClaim         Float
+  totalDeductions    Float     @default(0)
+  finalVat           Float     @default(0)
+  ewt                Float     @default(0)
+  netAmount          Float
+  rejectionReason    String?
+  status             DVStatus  @default(PENDING_ACCOUNTING)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Payment Check & Bank details
+  checkNo            String?
+  checkDate          String?
+  bankName           String?   @default("LANDBANK")
+  jevNo              String?
+  receivedByName     String?
+  receivedDate       String?
+
+  certifiedByName    String?   @default("LOURDES S. MENDOZA")
+  approvedByName     String?   @default("KAYE C. TINGA")
+
+  @@map("disbursement_vouchers")
+}
+
+// -----------------------------------------------------------------------------
+// 4. Double-Entry General Ledger & Journal Entries
+// -----------------------------------------------------------------------------
+model JournalEntry {
+  id          String        @id @default(uuid())
+  jeNo        String        @unique // JE-YYYY-SSSS
+  date        DateTime      @default(now())
+  particulars String
+  status      String        @default("POSTED") // "POSTED" | "DRAFT"
+  createdAt   DateTime      @default(now())
+
+  lines       JournalLine[]
+
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id             String       @id @default(uuid())
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  accountCode    String
+  accountName    String
+  debit          Float        @default(0)
+  credit         Float        @default(0)
+
+  @@map("journal_lines")
+}
+
+// -----------------------------------------------------------------------------
+// 5. System Audit Trail & Event Logs
+// -----------------------------------------------------------------------------
+model AuditLog {
+  id          String   @id @default(uuid())
+  logId       String   @unique // AUD-00001
+  timestamp   DateTime @default(now())
+  actorId     String?
+  actor       User?    @relation("ActorAuditLogs", fields: [actorId], references: [id])
+  actorName   String
+  module      String   // "BUR" | "DV" | "LEDGER" | "USERS" | "SYSTEM"
+  actionType  String   // "CREATE" | "APPROVE" | "REJECT" | "POST" | "EDIT"
+  documentRef String?
+  details     String?
+
+  @@map("audit_logs")
+}
+
+// -----------------------------------------------------------------------------
+// 6. Chart of Accounts & Allotments
+// -----------------------------------------------------------------------------
+model AccountCode {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  category    String   // "ASSET" | "LIABILITY" | "EQUITY" | "INCOME" | "EXPENSE"
+  description String?
+
+  @@map("account_codes")
+}
+
+model Allotment {
+  id             String @id @default(uuid())
+  fundCluster    String
+  mfoPap         String
+  allotmentClass String
+  accountCode    String
+  totalAllotment Float
+  obligated      Float  @default(0)
+  balance        Float
+
+  @@map("allotments")
+}
