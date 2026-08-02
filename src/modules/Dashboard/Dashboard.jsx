@@ -7,6 +7,7 @@ import {
   FileText, Plus, ChevronDown
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
+import { formatCurrency } from '../../utils/formatters';
 
 // Sample data matching wireframe budget utilization trend line (FY 2026)
 const TREND_DATA = [
