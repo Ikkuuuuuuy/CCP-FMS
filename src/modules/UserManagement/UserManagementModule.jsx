@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Search, Shield, Key, CheckCircle, AlertCircle, Edit3, Trash2, Mail, Building } from 'lucide-react';
+import { Users, UserPlus, Search, Shield, ShieldCheck, Key, CheckCircle, AlertCircle, Edit3, Trash2, Mail, Building } from 'lucide-react';
 import { MOCK_USERS } from '../../data/seedData';
 
 export default function UserManagementModule() {
