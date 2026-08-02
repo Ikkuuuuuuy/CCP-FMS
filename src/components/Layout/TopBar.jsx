@@ -115,10 +115,9 @@ export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
           margin: 0,
           color: '#FFFFFF',
           textShadow: '0 2px 6px rgba(0,0,0,0.6)',
-          whiteSpace: 'nowrap'
+          lineHeight: 1.15
         }}>
-          <span className="desktop-title-text">FINANCIAL MANAGEMENT SYSTEM</span>
-          <span className="mobile-title-text" style={{ display: 'none' }}>CCP — FMS</span>
+          FINANCIAL MANAGEMENT SYSTEM
         </h1>
       </div>
 
@@ -127,7 +126,7 @@ export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
         
         {/* Date & Live Real-Time Digital Clock Widget */}
         <div className="topbar-clock-widget" style={{
-          display: 'flex', alignItems: 'center', gap: '12px',
+          display: 'flex', alignItems: 'center', gap: '10px',
           backgroundColor: 'rgba(0, 0, 0, 0.25)', border: '1px solid rgba(212,175,55,0.3)',
           borderRadius: '20px', padding: '6px 14px', color: '#FDE68A', fontSize: '11px', fontWeight: 600
         }}>
