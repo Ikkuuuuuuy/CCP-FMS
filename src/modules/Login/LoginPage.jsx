@@ -197,13 +197,13 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Username Input */}
+            {/* Username / Email Input */}
             <div style={{ marginBottom: '14px' }}>
               <label style={{
                 display: 'block', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.85)',
                 marginBottom: '6px'
               }}>
-                Government Email / Employee ID
+                Email
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -227,29 +227,20 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Password Input with Forgot Password Button */}
+            {/* Password Input with Forgot Password Link Below */}
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>
-                  GovPortal Password
-                </label>
-                <button
-                  type="button"
-                  onClick={() => { setViewMode('forgot_password'); setResetSent(false); setResetEmail(username); }}
-                  style={{
-                    background: 'none', border: 'none', color: '#D4AF37', fontSize: '11px',
-                    fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline'
-                  }}
-                >
-                  Forgot Password?
-                </button>
-              </div>
+              <label style={{
+                display: 'block', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.85)',
+                marginBottom: '6px'
+              }}>
+                Password
+              </label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter secure password"
+                  placeholder="Enter password"
                   style={{
                     width: '100%',
                     padding: '11px 36px 11px 36px',
@@ -272,6 +263,20 @@ export default function LoginPage() {
                   }}
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+
+              {/* Forgot Password Link Positioned Below Password Text Box */}
+              <div style={{ textAlign: 'right', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => { setViewMode('forgot_password'); setResetSent(false); setResetEmail(username); }}
+                  style={{
+                    background: 'none', border: 'none', color: '#D4AF37', fontSize: '11px',
+                    fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline'
+                  }}
+                >
+                  Forgot Password?
                 </button>
               </div>
             </div>
