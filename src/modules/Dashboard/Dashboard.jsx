@@ -127,60 +127,6 @@ export default function Dashboard({ onNavigate }) {
             </select>
             <ChevronDown size={14} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
           </div>
-
-          {/* Quick Action Interactive Dropdown */}
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => setShowQuickActions(!showQuickActions)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#8C1515', border: '1px solid #7A1010',
-                borderRadius: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: 700, color: '#FFFFFF', cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(140, 21, 21, 0.25)'
-              }}
-            >
-              <span>Quick Action</span>
-              <ChevronDown size={14} style={{ color: '#FDE68A' }} />
-            </button>
-
-            {showQuickActions && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 6px)', left: 0, width: '240px', backgroundColor: '#FFFFFF',
-                border: '1px solid #E5E7EB', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-                zIndex: 150, overflow: 'hidden'
-              }}>
-                <div
-                  onClick={() => { onNavigate?.('bur'); setShowQuickActions(false); }}
-                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
-                >
-                  ➕ New BUR (Budget Request)
-                </div>
-                <div
-                  onClick={() => { onNavigate?.('dv'); setShowQuickActions(false); }}
-                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
-                >
-                  💳 New Disbursement Voucher (DV)
-                </div>
-                <div
-                  onClick={() => { onNavigate?.('reports'); setShowQuickActions(false); }}
-                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
-                >
-                  📊 View Financial Reports
-                </div>
-                <div
-                  onClick={() => { onNavigate?.('ledger'); setShowQuickActions(false); }}
-                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
-                >
-                  📒 Open Credit & Collections
-                </div>
-                <div
-                  onClick={() => { onNavigate?.('users'); setShowQuickActions(false); }}
-                  style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 600, color: '#111827', cursor: 'pointer' }}
-                >
-                  👥 Manage Personnel Access
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
