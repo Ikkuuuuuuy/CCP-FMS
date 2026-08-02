@@ -219,7 +219,14 @@ export default function DVModule() {
                         </button>
                         <button
                           className="btn btn-ghost btn-sm btn-icon"
-                          title="Print"
+                          title="Edit DV Request"
+                          onClick={() => { setSelectedDV(dv); setView('form'); }}
+                        >
+                          <Edit size={14} style={{ color: '#2563EB' }} />
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
+                          title="Print Official DV"
                           onClick={(e) => {
                             e.stopPropagation();
                             setPrintDV(dv);
@@ -228,15 +235,6 @@ export default function DVModule() {
                         >
                           <Printer size={14} />
                         </button>
-                        {(dv.status === 'PREPARED' || dv.status === 'FORWARDED_TO_TREASURY' || dv.status === 'PENDING_ACCOUNTING') && (
-                          <button
-                            className="btn btn-ghost btn-sm btn-icon"
-                            title="Edit DV"
-                            onClick={() => { setSelectedDV(dv); setView('detail'); }}
-                          >
-                            <Edit size={14} />
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>

@@ -230,6 +230,13 @@ export default function BURModule() {
                         </button>
                         <button
                           className="btn btn-ghost btn-sm btn-icon"
+                          title="Edit BUR Request"
+                          onClick={() => { setSelectedBUR(bur); setView('form'); }}
+                        >
+                          <Edit size={14} style={{ color: '#2563EB' }} />
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
                           title="Print Official BUR"
                           onClick={(e) => {
                             e.stopPropagation();
