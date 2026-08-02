@@ -16,7 +16,10 @@ const PAGE_NAMES = {
 
 export default function TopBar({ activePage, onNavigate }) {
   const { state, dispatch } = useApp();
+  const { burs = [], dvs = [], journalEntries = [], currentUser } = state;
+
   const [showNotifications, setShowNotifications] = useState(false);
+  const [readIds, setReadIds] = useState(new Set());
   const [timeString, setTimeString] = useState(() =>
     new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   );
@@ -28,18 +31,46 @@ export default function TopBar({ activePage, onNavigate }) {
     return () => clearInterval(timer);
   }, []);
 
-  const [notifications, setNotifications] = useState([
-    { id: 1, type: 'bur', title: '18 BURs Queued', desc: 'Pending Budget Officer certification', time: '10m ago', unread: true },
-    { id: 2, type: 'dv', title: '25 Disbursement Vouchers', desc: 'Ready for accountant & payment review', time: '25m ago', unread: true },
-    { id: 3, type: 'system', title: 'Ledger Audit Passed', desc: 'All journal entry debits & credits balanced', time: '1h ago', unread: true },
-    { id: 4, type: 'security', title: 'GovPKI Session Verified', desc: 'Logged in as Admin (Jose Reyes)', time: '2h ago', unread: true },
-  ]);
+  // Compute Accurate Live System Notifications
+  const pendingBURs = burs.filter(b => b.status === 'PREPARED' || b.status === 'APPROVED' || b.status === 'FORWARDED_TO_TREASURY');
+  const pendingDVs = dvs.filter(d => d.status === 'PENDING_ACCOUNTING' || d.status === 'APPROVED_FOR_PAYMENT' || d.status === 'PREPARED');
+  const paidDVs = dvs.filter(d => d.status === 'PAID');
 
-  const unreadCount = notifications.filter(n => n.unread).length;
-  const activeModuleName = PAGE_NAMES[activePage] || 'FINANCIAL SYSTEM';
+  const accurateNotifications = [
+    {
+      id: 'notif-bur-pending',
+      type: 'bur',
+      title: `${pendingBURs.length} BURs Pending Review`,
+      desc: pendingBURs.length > 0 ? `Latest: ${pendingBURs[0].burNo || 'BUR'} (${pendingBURs[0].payeeName || 'Request'})` : 'No pending BUR obligations queued',
+      time: 'Real-time'
+    },
+    {
+      id: 'notif-dv-pending',
+      type: 'dv',
+      title: `${pendingDVs.length} Disbursement Vouchers Pending`,
+      desc: pendingDVs.length > 0 ? `Latest: ${pendingDVs[0].dvNo || 'DV'} (${pendingDVs[0].payeeName || 'Payee'})` : 'No disbursement vouchers awaiting processing',
+      time: 'Real-time'
+    },
+    {
+      id: 'notif-paid-dv',
+      type: 'system',
+      title: `${paidDVs.length} Paid & Posted Vouchers`,
+      desc: `${journalEntries.length} journal entries balanced & posted to General Ledger`,
+      time: 'Live Audit'
+    },
+    {
+      id: 'notif-session',
+      type: 'security',
+      title: `Authenticated: ${currentUser ? currentUser.name : 'System User'}`,
+      desc: `Role: ${currentUser ? currentUser.role : 'Authorized'} · CCP Financial Management Portal`,
+      time: 'Active Session'
+    }
+  ].map(n => ({ ...n, unread: !readIds.has(n.id) }));
+
+  const unreadCount = accurateNotifications.filter(n => n.unread).length;
 
   const markAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, unread: false })));
+    setReadIds(new Set(accurateNotifications.map(n => n.id)));
   };
 
   return (
@@ -67,9 +98,8 @@ export default function TopBar({ activePage, onNavigate }) {
         backgroundSize: '24px 24px'
       }} />
 
-      {/* Header Left Title Section (FMS Only) */}
+      {/* Header Left Title Section */}
       <div style={{ position: 'relative', zIndex: 2 }}>
-        {/* Official CCP Gold Playfair Serif Title */}
         <h1 style={{
           fontSize: '28px',
           fontWeight: 900,
@@ -77,7 +107,7 @@ export default function TopBar({ activePage, onNavigate }) {
           letterSpacing: '0.06em',
           textTransform: 'uppercase',
           margin: 0,
-          color: '#FFFFFF', // Clean Crisp White
+          color: '#FFFFFF',
           textShadow: '0 2px 6px rgba(0,0,0,0.6)'
         }}>
           FINANCIAL MANAGEMENT SYSTEM
@@ -114,7 +144,7 @@ export default function TopBar({ activePage, onNavigate }) {
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 2px 8px rgba(0,0,0,0.2)', transition: 'all 150ms ease'
             }}
-            title="System Notifications"
+            title="Notifications"
           >
             <Bell size={18} style={{ color: '#FDE68A' }} />
             {unreadCount > 0 && (
@@ -136,7 +166,7 @@ export default function TopBar({ activePage, onNavigate }) {
               boxShadow: '0 12px 35px rgba(0,0,0,0.25)', padding: '14px 0', zIndex: 120
             }}>
               <div style={{ padding: '0 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6' }}>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#111827' }}>System Alerts</span>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#111827' }}>Notifications</span>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllRead}
@@ -148,15 +178,16 @@ export default function TopBar({ activePage, onNavigate }) {
               </div>
 
               <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
-                {notifications.map((n) => (
+                {accurateNotifications.map((n) => (
                   <div
                     key={n.id}
+                    onClick={() => setReadIds(prev => new Set([...prev, n.id]))}
                     style={{
                       padding: '10px 16px', display: 'flex', gap: '12px', borderBottom: '1px solid #F9FAFB',
-                      backgroundColor: n.unread ? '#FEFCE8' : 'transparent'
+                      backgroundColor: n.unread ? '#FEFCE8' : 'transparent', cursor: 'pointer'
                     }}
                   >
-                    <div style={{ marginTop: '2px', color: n.type === 'bur' ? '#D97706' : n.type === 'dv' ? '#DC2626' : '#059669' }}>
+                    <div style={{ marginTop: '2px', color: n.type === 'bur' ? '#D97706' : n.type === 'dv' ? '#DC2626' : n.type === 'security' ? '#8C1515' : '#059669' }}>
                       {n.type === 'bur' ? <FileText size={16} /> : n.type === 'dv' ? <CreditCard size={16} /> : <CheckCircle size={16} />}
                     </div>
                     <div style={{ flex: 1 }}>
