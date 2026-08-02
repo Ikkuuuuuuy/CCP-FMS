@@ -110,63 +110,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
               </div>
             </div>
 
-            <div className="card" style={{ marginTop: 16 }}>
-              <div className="card-header"><div className="card-title">Allotment Balance Check</div></div>
-              <div className="card-body">
-                {allotment ? (
-                  <>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                        <span style={{ color: '#6B7280' }}>Total Allotment:</span>
-                        <span style={{ fontWeight: 700 }}>{formatCurrency(allotment.total)}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                        <span style={{ color: '#6B7280' }}>Already Obligated:</span>
-                        <span style={{ fontWeight: 700, color: '#D97706' }}>{formatCurrency(allotment.obligated)}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #F3F4F6', paddingTop: 10 }}>
-                        <span style={{ fontWeight: 600 }}>Available Balance:</span>
-                        <span style={{ fontWeight: 800, color: '#059669', fontSize: 15 }}>{formatCurrency(available)}</span>
-                      </div>
-                    </div>
 
-                    {/* Real-time balance indicator */}
-                    {requested > 0 && (
-                      <div className={`balance-indicator ${isOverBudget ? 'error' : requested > available * 0.8 ? 'warn' : 'ok'}`} style={{ marginTop: 12 }}>
-                        {isOverBudget ? (
-                          <>
-                            <AlertTriangle size={14} />
-                            <span>EXCEEDS available balance by {formatCurrency(requested - available)}</span>
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle size={14} />
-                            <span>Balance after obligation: {formatCurrency(available - requested)}</span>
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    <div style={{ marginTop: 12 }}>
-                      <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 6 }}>
-                        Utilization after this BUR: {utilizationAfter.toFixed(1)}%
-                      </div>
-                      <div className="allotment-bar-track">
-                        <div
-                          className="allotment-bar-fill"
-                          style={{
-                            width: `${utilizationAfter}%`,
-                            background: isOverBudget ? '#DC2626' : utilizationAfter > 80 ? '#D97706' : '#D4AF37',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div style={{ color: '#6B7280', fontSize: 13 }}>Select fund cluster and allotment class to check balance.</div>
-                )}
-              </div>
-            </div>
             
             <div className="card" style={{ marginTop: 16 }}>
               <div className="card-header"><div className="card-title">Payee Details</div></div>
@@ -267,14 +211,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
               </div>
             </div>
 
-            <div className="alert alert-info" style={{ marginTop: 16 }}>
-              <Info size={14} className="alert-icon" />
-              <div className="alert-text">
-                <div className="alert-title">BUR Workflow</div>
-                After saving, submit the BUR for Budget Officer IV certification. The allotment
-                balance will be reserved only upon certification.
-              </div>
-            </div>
+
           </div>
         </div>
       </form>
