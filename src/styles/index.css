@@ -1617,8 +1617,23 @@ select.form-control { appearance: none; cursor: pointer; }
   }
 
   .topbar-title {
-    font-size: 14px !important;
+    font-size: 15px !important;
     letter-spacing: 0.02em !important;
+  }
+
+  .desktop-title-text {
+    display: none !important;
+  }
+
+  .mobile-title-text {
+    display: inline-block !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    color: #FDE68A !important;
+  }
+
+  .topbar-clock-widget {
+    display: none !important;
   }
 
   .mobile-hamburger-btn {

@@ -117,15 +117,16 @@ export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
           textShadow: '0 2px 6px rgba(0,0,0,0.6)',
           whiteSpace: 'nowrap'
         }}>
-          FINANCIAL MANAGEMENT SYSTEM
+          <span className="desktop-title-text">FINANCIAL MANAGEMENT SYSTEM</span>
+          <span className="mobile-title-text" style={{ display: 'none' }}>CCP — FMS</span>
         </h1>
       </div>
 
       {/* Header Right Controls */}
-      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '12px' }}>
         
         {/* Date & Live Real-Time Digital Clock Widget */}
-        <div style={{
+        <div className="topbar-clock-widget" style={{
           display: 'flex', alignItems: 'center', gap: '12px',
           backgroundColor: 'rgba(0, 0, 0, 0.25)', border: '1px solid rgba(212,175,55,0.3)',
           borderRadius: '20px', padding: '6px 14px', color: '#FDE68A', fontSize: '11px', fontWeight: 600
