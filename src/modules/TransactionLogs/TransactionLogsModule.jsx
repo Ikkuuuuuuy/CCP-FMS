@@ -123,29 +123,25 @@ export default function TransactionLogsModule() {
         backgroundColor: '#FFFFFF', padding: '16px 20px', borderRadius: '12px',
         border: '1px solid #E8E2D9', boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
       }}>
-        {/* Tab Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {[
-            { id: 'ALL', label: 'All Activity' },
-            { id: 'BUR', label: 'BUR Obligations' },
-            { id: 'DV', label: 'Disbursement Vouchers' },
-            { id: 'LEDGER', label: 'Journal Entries' },
-            { id: 'SL', label: 'Subsidiary Ledger' }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setFilterType(tab.id)}
-              style={{
-                padding: '7px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
-                border: filterType === tab.id ? '1px solid #8C1515' : '1px solid #E5E7EB',
-                backgroundColor: filterType === tab.id ? '#8C1515' : '#FFFFFF',
-                color: filterType === tab.id ? '#FFFFFF' : '#374151',
-                transition: 'all 150ms ease'
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Module / Ledger Type Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Filter size={14} style={{ color: '#8C1515' }} />
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#3D3020', whiteSpace: 'nowrap' }}>Filter Category:</span>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            style={{
+              padding: '8px 14px', borderRadius: '6px', border: '1px solid #8C1515',
+              fontSize: '12px', fontWeight: 700, color: '#8C1515', backgroundColor: '#FFFDF9',
+              outline: 'none', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+            }}
+          >
+            <option value="ALL">All Activity</option>
+            <option value="BUR">BUR Obligations</option>
+            <option value="DV">Disbursement Vouchers</option>
+            <option value="LEDGER">Journal Entries</option>
+            <option value="SL">Subsidiary Ledger</option>
+          </select>
         </div>
 
         {/* Right Section: Sort Dropdown & Search Input */}
