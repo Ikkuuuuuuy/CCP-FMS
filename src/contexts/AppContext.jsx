@@ -203,7 +203,9 @@ function appReducer(state, action) {
       const transitions = {
         PREPARED: 'PENDING_ACCOUNTING',
         PENDING_ACCOUNTING: 'APPROVED_FOR_PAYMENT',
-        APPROVED_FOR_PAYMENT: 'PAID',
+        APPROVED_FOR_PAYMENT: 'FOR_CHECK_PREPARATION',
+        FOR_CHECK_PREPARATION: 'FOR_RELEASE',
+        FOR_RELEASE: 'PAID',
       };
 
       const nextStatus = transitions[dv.status];

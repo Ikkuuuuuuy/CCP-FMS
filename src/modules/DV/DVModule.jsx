@@ -9,10 +9,11 @@ import DVPrintTemplate from '../../components/Print/DVPrintTemplate';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
 const DV_STATUS_TRANSITIONS = {
-  DRAFT:               { label: 'Submit to Accounting', action: 'ADVANCE', btnClass: 'btn-primary' },
-  PENDING_ACCOUNTING:  { label: 'Certify Funds', action: 'ADVANCE', btnClass: 'btn-success' },
-  CERTIFIED_FUNDS:     { label: 'Approve for Payment', action: 'ADVANCE', btnClass: 'btn-success' },
-  APPROVED_FOR_PAYMENT: { label: 'Mark as PAID', action: 'ADVANCE', btnClass: 'btn-success' },
+  PREPARED:              { label: 'Submit to Accounting',  action: 'ADVANCE', btnClass: 'btn-primary' },
+  PENDING_ACCOUNTING:    { label: 'Approve for Payment',   action: 'ADVANCE', btnClass: 'btn-success' },
+  APPROVED_FOR_PAYMENT:  { label: 'Prepare Check',         action: 'ADVANCE', btnClass: 'btn-warning' },
+  FOR_CHECK_PREPARATION: { label: 'Mark for Release',      action: 'ADVANCE', btnClass: 'btn-info' },
+  FOR_RELEASE:           { label: 'Stamp & Mark PAID',     action: 'ADVANCE', btnClass: 'btn-success' },
 };
 
 export default function DVModule() {
@@ -60,12 +61,12 @@ export default function DVModule() {
   };
 
   const STATUS_FILTERS = [
-    { value: 'ALL', label: 'All' },
-    { value: 'PREPARED', label: 'Prepared' },
-    { value: 'FORWARDED_TO_TREASURY', label: 'Treasury' },
-    { value: 'FOR_APPROVAL_OP', label: 'For Approval OP' },
-    { value: 'APPROVED', label: 'Approved' },
+    { value: 'ALL', label: 'All Statuses' },
+    { value: 'PENDING_ACCOUNTING', label: 'Pending Accounting' },
+    { value: 'APPROVED_FOR_PAYMENT', label: 'Approved for Payment' },
+    { value: 'FOR_CHECK_PREPARATION', label: 'For Check preparation' },
     { value: 'FOR_RELEASE', label: 'For Release' },
+    { value: 'PAID', label: 'Paid' },
     { value: 'REJECTED', label: 'Rejected' },
   ];
 

@@ -6,7 +6,7 @@ import Modal from '../../components/Modal';
 import BURForm from './BURForm';
 import BURDetail from './BURDetail';
 import BURPrintTemplate from '../../components/Print/BURPrintTemplate';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { CCP_OFFICES } from '../../data/seedData';
 
 export default function BURModule() {
   const { state, dispatch } = useApp();
@@ -16,6 +16,7 @@ export default function BURModule() {
   const [selectedBUR, setSelectedBUR] = useState(null);
   const [printBUR, setPrintBUR] = useState(null);
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterOffice, setFilterOffice] = useState('ALL');
   const [searchText, setSearchText] = useState('');
   const [rejectModal, setRejectModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -27,11 +28,13 @@ export default function BURModule() {
 
   const filtered = burs.filter((b) => {
     const matchStatus = filterStatus === 'ALL' || b.status === filterStatus;
+    const matchOffice = filterOffice === 'ALL' || b.office === filterOffice || b.responsibilityCenter === filterOffice;
     const matchSearch = !searchText ||
       b.burNo?.toLowerCase().includes(searchText.toLowerCase()) ||
+      b.office?.toLowerCase().includes(searchText.toLowerCase()) ||
       b.responsibilityCenter?.toLowerCase().includes(searchText.toLowerCase()) ||
       b.mfoPap?.toLowerCase().includes(searchText.toLowerCase());
-    return matchStatus && matchSearch;
+    return matchStatus && matchOffice && matchSearch;
   });
 
   const handleSubmit = (id) => {
@@ -59,12 +62,12 @@ export default function BURModule() {
   };
 
   const STATUS_FILTERS = [
-    { value: 'ALL', label: 'All' },
+    { value: 'ALL', label: 'All Statuses' },
+    { value: 'DRAFT', label: 'Draft' },
     { value: 'PREPARED', label: 'Prepared' },
-    { value: 'FORWARDED_TO_TREASURY', label: 'Treasury' },
-    { value: 'FOR_APPROVAL_OP', label: 'For Approval OP' },
+    { value: 'PENDING_BUDGET_CERTIFICATION', label: 'Pending Certification' },
+    { value: 'OBLIGATED', label: 'Obligated' },
     { value: 'APPROVED', label: 'Approved' },
-    { value: 'FOR_RELEASE', label: 'For Release' },
     { value: 'REJECTED', label: 'Rejected' },
   ];
 
@@ -139,6 +142,25 @@ export default function BURModule() {
             onChange={(e) => setSearchText(e.target.value)}
           />
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+            Office:
+          </label>
+          <select
+            className="form-control"
+            style={{ width: 190, padding: '6px 10px', fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: 'pointer' }}
+            value={filterOffice}
+            onChange={(e) => setFilterOffice(e.target.value)}
+          >
+            <option value="ALL">All CCP Offices</option>
+            {CCP_OFFICES.map((off) => (
+              <option key={off.code} value={off.name}>
+                {off.name} ({off.code})
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
             Status:

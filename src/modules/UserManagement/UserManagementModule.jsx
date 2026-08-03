@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, Search, Shield, ShieldCheck, Key, CheckCircle, AlertCircle, Edit3, Trash2, Mail, Building } from 'lucide-react';
-import { MOCK_USERS } from '../../data/seedData';
+import { MOCK_USERS, CCP_OFFICES } from '../../data/seedData';
 
 export default function UserManagementModule() {
   const [users, setUsers] = useState(MOCK_USERS);
@@ -265,14 +265,16 @@ export default function UserManagementModule() {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#374151', marginBottom: '6px' }}>Department / Division</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Budget & Financial Planning Division"
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#374151', marginBottom: '6px' }}>CCP Office / Department</label>
+                <select
                   value={newUser.department}
                   onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '13px', outline: 'none' }}
-                />
+                  style={{ width: '100%', padding: '10px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '13px', backgroundColor: '#FFFFFF' }}
+                >
+                  {CCP_OFFICES.map((off) => (
+                    <option key={off.code} value={off.name}>{off.name} ({off.code})</option>
+                  ))}
+                </select>
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>

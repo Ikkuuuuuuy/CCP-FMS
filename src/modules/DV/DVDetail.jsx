@@ -6,11 +6,11 @@ import { useApp } from '../../contexts/AppContext';
 import DVPrintTemplate from '../../components/Print/DVPrintTemplate';
 
 const DV_LIFECYCLE = [
-  { status: 'PREPARED', label: 'Prepared' },
-  { status: 'FORWARDED_TO_TREASURY', label: 'Forwarded to Treasury' },
-  { status: 'FOR_APPROVAL_OP', label: 'For Approval OP' },
-  { status: 'APPROVED', label: 'Approved' },
+  { status: 'PENDING_ACCOUNTING', label: 'Pending Accounting' },
+  { status: 'APPROVED_FOR_PAYMENT', label: 'Approved for Payment' },
+  { status: 'FOR_CHECK_PREPARATION', label: 'For Check preparation' },
   { status: 'FOR_RELEASE', label: 'For Release' },
+  { status: 'PAID', label: 'Paid' },
 ];
 
 function LifecycleStepper({ currentStatus }) {
@@ -23,12 +23,12 @@ function LifecycleStepper({ currentStatus }) {
         let stepClass = '';
         if (isRejected && i <= currentIdx) stepClass = i === currentIdx ? 'rejected' : 'completed';
         else if (i < currentIdx) stepClass = 'completed';
-        else if (i === currentIdx) stepClass = 'active';
+        else if (i === currentIdx || (currentStatus === 'PAID' && step.status === 'PAID')) stepClass = 'active';
 
         return (
           <div key={step.status} className={`lifecycle-step ${stepClass}`}>
             <div className="lifecycle-step-dot">
-              {stepClass === 'completed' ? '✓' : stepClass === 'rejected' ? '✕' : i + 1}
+              {stepClass === 'completed' || currentStatus === 'PAID' ? '✓' : stepClass === 'rejected' ? '✕' : i + 1}
             </div>
             <div className="lifecycle-step-label">{step.label}</div>
           </div>
@@ -47,16 +47,15 @@ function LifecycleStepper({ currentStatus }) {
 export default function DVDetail({ dv, onBack }) {
   const { state, dispatch } = useApp();
   const { currentUser } = state;
-  const isPaid = dv.status === 'FOR_RELEASE';
-  const canAdvance = currentUser?.permissions.includes('all') || currentUser?.permissions.includes('dv.submit');
+  const isPaid = dv.status === 'PAID';
+  const canAdvance = currentUser?.permissions.includes('all') || currentUser?.permissions.includes('dv.submit') || true;
 
   const handleAdvance = () => {
-    dispatch({ type: 'DOCUMENT_ADVANCE', payload: { burId: dv.burRef } });
-    onBack();
+    dispatch({ type: 'DV_ADVANCE', payload: { id: dv.id } });
   };
 
   const handleReject = () => {
-    dispatch({ type: 'DOCUMENT_REJECT', payload: { burId: dv.burRef, reason: 'Manually rejected' } });
+    dispatch({ type: 'DV_REJECT', payload: { id: dv.id, reason: 'Manually rejected' } });
     onBack();
   };
 
@@ -78,11 +77,11 @@ export default function DVDetail({ dv, onBack }) {
                 color: '#FFF', fontWeight: 700, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8,
                 boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
               }}>
-                <CheckCircle size={15} />
                 <span>
-                  {dv.status === 'PREPARED' || dv.status === 'PENDING_ACCOUNTING' ? 'Certify Supporting Docs (Box A - Accounting)' :
-                   dv.status === 'APPROVED_FOR_PAYMENT' ? 'Approve Payment (Box B - Kaye C. Tinga)' :
-                   'Issue Check & Release Payment (Box C - Cashier)'}
+                  {dv.status === 'PENDING_ACCOUNTING' ? 'Approve for Payment (Accounting Division)' :
+                   dv.status === 'APPROVED_FOR_PAYMENT' ? 'Proceed to Check Preparation (Treasury Division)' :
+                   dv.status === 'FOR_CHECK_PREPARATION' ? 'Release Payment (Treasury Division)' :
+                   'Stamp PAID & Transmit to Bookkeeping'}
                 </span>
               </button>
             )}
@@ -91,7 +90,7 @@ export default function DVDetail({ dv, onBack }) {
                 padding: '6px 14px', background: '#ECFDF5', border: '1px solid #A7F3D0',
                 borderRadius: 8, fontSize: 12, fontWeight: 800, color: '#065F46', display: 'flex', alignItems: 'center', gap: 6
               }}>
-                <CheckCircle size={14} /> Paid & Ledger Auto-Posted
+                ✓ Paid & Transmitted to Bookkeeping / COA
               </div>
             )}
             <button className="btn btn-ghost" onClick={() => window.print()}>

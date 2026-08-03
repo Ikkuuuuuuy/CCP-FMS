@@ -182,12 +182,15 @@ export function calcUtilizationPct(used, total) {
 export const STATUS_CONFIG = {
   // BUR statuses
   DRAFT:                        { label: 'Draft',                color: '#6B7280', bg: '#F3F4F6' },
+  PREPARED:                     { label: 'Prepared',             color: '#2563EB', bg: '#EFF6FF' },
   PENDING_BUDGET_CERTIFICATION: { label: 'Pending Certification',color: '#D97706', bg: '#FFFBEB' },
   OBLIGATED:                    { label: 'Obligated',            color: '#059669', bg: '#ECFDF5' },
+  APPROVED:                     { label: 'Approved',             color: '#059669', bg: '#ECFDF5' },
   REJECTED:                     { label: 'Rejected',             color: '#DC2626', bg: '#FEF2F2' },
-  // DV statuses
+  // DV payment process statuses
   PENDING_ACCOUNTING:           { label: 'Pending Accounting',   color: '#2563EB', bg: '#EFF6FF' },
-  CERTIFIED_FUNDS:              { label: 'Funds Certified',      color: '#7C3AED', bg: '#F5F3FF' },
-  APPROVED_FOR_PAYMENT:         { label: 'Approved for Payment', color: '#059669', bg: '#ECFDF5' },
+  APPROVED_FOR_PAYMENT:         { label: 'Approved for Payment', color: '#7C3AED', bg: '#F5F3FF' },
+  FOR_CHECK_PREPARATION:        { label: 'For Check preparation',color: '#D97706', bg: '#FFFBEB' },
+  FOR_RELEASE:                  { label: 'For Release',          color: '#0284C7', bg: '#E0F2FE' },
   PAID:                         { label: 'Paid',                 color: '#065F46', bg: '#D1FAE5' },
 };

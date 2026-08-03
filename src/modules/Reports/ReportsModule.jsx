@@ -44,7 +44,7 @@ export default function ReportsModule() {
         CULTURAL CENTER OF THE PHILIPPINES
       </div>
       <div style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
-        Finance Division — Financial Management System
+        Financial Services Department — Financial Management System
       </div>
       <div style={{
         margin: '12px 0 4px',

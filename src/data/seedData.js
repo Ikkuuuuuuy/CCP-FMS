@@ -110,21 +110,37 @@ export const MFO_PAP_CODES = [
 ];
 
 // =============================================================================
+// Official CCP Offices & Departments
+// =============================================================================
+export const CCP_OFFICES = [
+  { code: 'OP', name: 'Office of the President', shortName: 'Office of the President' },
+  { code: 'OVP', name: 'Office of the Vice President', shortName: 'Office of the Vice President' },
+  { code: 'OAD', name: 'Office of the Artistic Director', shortName: 'Office of the Artistic Director' },
+  { code: 'FSD', name: 'Financial Services Department', shortName: 'Financial Services Department' },
+  { code: 'ASD', name: 'Administrative Services Department', shortName: 'Administrative Services Department' },
+  { code: 'CAD', name: 'Corporate Affairs Department', shortName: 'Corporate Affairs Department' },
+  { code: 'MD', name: 'Marketing Department', shortName: 'Marketing Department' },
+  { code: 'PED', name: 'Production and Exhibition Department', shortName: 'Production and Exhibition Department' },
+  { code: 'AED', name: 'Arts Education Department', shortName: 'Arts Education Department' },
+  { code: 'CED', name: 'Cultural Exchange Department', shortName: 'Cultural Exchange Department' },
+  { code: 'CCD', name: 'Cultural Content Department', shortName: 'Cultural Content Department' },
+];
+
+// =============================================================================
 // Responsibility Centers
 // =============================================================================
 export const RESPONSIBILITY_CENTERS = [
-  { code: 'OED', name: 'Office of the Executive Director', type: 'Central' },
-  { code: 'FD', name: 'Finance Division', type: 'Central' },
-  { code: 'HRD', name: 'Human Resource Division', type: 'Central' },
-  { code: 'ICTD', name: 'ICT Division', type: 'Central' },
-  { code: 'AGD', name: 'Arts Group Division', type: 'Program' },
-  { code: 'AED', name: 'Arts Education Division', type: 'Program' },
-  { code: 'ICD', name: 'International and Cultural Diplomacy Division', type: 'Program' },
-  { code: 'VMD', name: 'Venue Management Division', type: 'Program' },
-  { code: 'PPD', name: 'Planning and Policy Division', type: 'Program' },
-  { code: 'MSD', name: 'Marketing and Sponsorships Division', type: 'Program' },
-  { code: 'CAD', name: 'Communication and Archives Division', type: 'Program' },
-  { code: 'GAD-OFF', name: 'GAD Focal Point Office', type: 'Special' },
+  { code: 'OP', name: 'Office of the President', type: 'Executive' },
+  { code: 'OVP', name: 'Office of the Vice President', type: 'Executive' },
+  { code: 'OAD', name: 'Office of the Artistic Director', type: 'Executive' },
+  { code: 'FSD', name: 'Financial Services Department', type: 'Central' },
+  { code: 'ASD', name: 'Administrative Services Department', type: 'Central' },
+  { code: 'CAD', name: 'Corporate Affairs Department', type: 'Central' },
+  { code: 'MD', name: 'Marketing Department', type: 'Program' },
+  { code: 'PED', name: 'Production and Exhibition Department', type: 'Program' },
+  { code: 'AED', name: 'Arts Education Department', type: 'Program' },
+  { code: 'CED', name: 'Cultural Exchange Department', type: 'Program' },
+  { code: 'CCD', name: 'Cultural Content Department', type: 'Program' },
 ];
 
 // =============================================================================

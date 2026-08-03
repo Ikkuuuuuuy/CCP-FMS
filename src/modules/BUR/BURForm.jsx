@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import {
-  FUND_CLUSTERS, ALLOTMENT_CLASSES, MFO_PAP_CODES, RESPONSIBILITY_CENTERS, CHART_OF_ACCOUNTS,
+  FUND_CLUSTERS, ALLOTMENT_CLASSES, MFO_PAP_CODES, RESPONSIBILITY_CENTERS, CHART_OF_ACCOUNTS, CCP_OFFICES,
 } from '../../data/seedData';
 import { formatCurrency, calcUtilizationPct } from '../../utils/formatters';
 
@@ -12,8 +12,8 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
         ...initialData,
         fundCluster: initialData.fundCluster || '101',
         allotmentClass: initialData.allotmentClass || 'MOOE',
-        office: initialData.office || 'Administrative Services',
-        responsibilityCenter: initialData.responsibilityCenter || '08',
+        office: initialData.office || 'Financial Services Department',
+        responsibilityCenter: initialData.responsibilityCenter || 'FSD',
         mfoPap: initialData.mfoPap || 'PAP-4.2',
         accountCode: initialData.accountCode || '5021202000',
         amount: initialData.amount || '',
@@ -27,8 +27,8 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
     return {
       fundCluster: '101',
       allotmentClass: 'MOOE',
-      office: 'Administrative Services',
-      responsibilityCenter: '08',
+      office: 'Financial Services Department',
+      responsibilityCenter: 'FSD',
       mfoPap: 'PAP-4.2',
       accountCode: '5021202000',
       amount: '',
@@ -152,15 +152,53 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
               <div className="card-header"><div className="card-title">Office & Particulars Details</div></div>
               <div className="card-body">
                 <div className="form-group">
-                  <label className="form-label">Requesting Office <span className="required">*</span></label>
-                  <input type="text" required className="form-control" placeholder="e.g. Administrative Services"
-                    value={form.office} onChange={set('office')} />
+                  <label className="form-label">Requesting Office / Department <span className="required">*</span></label>
+                  <select
+                    required
+                    className="form-control"
+                    value={form.office}
+                    onChange={(e) => {
+                      const selectedVal = e.target.value;
+                      const matchedOff = CCP_OFFICES.find((o) => o.name === selectedVal || o.shortName === selectedVal);
+                      setForm((f) => ({
+                        ...f,
+                        office: selectedVal,
+                        responsibilityCenter: matchedOff?.code || f.responsibilityCenter,
+                      }));
+                    }}
+                  >
+                    <option value="">-- Select CCP Office / Department --</option>
+                    {CCP_OFFICES.map((off) => (
+                      <option key={off.code} value={off.name}>
+                        {off.name} ({off.code})
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="form-group">
                   <label className="form-label">Responsibility Center Code <span className="required">*</span></label>
-                  <input type="text" required className="form-control" placeholder="e.g. 08"
-                    value={form.responsibilityCenter} onChange={set('responsibilityCenter')} />
+                  <select
+                    required
+                    className="form-control"
+                    value={form.responsibilityCenter}
+                    onChange={(e) => {
+                      const codeVal = e.target.value;
+                      const matchedOff = CCP_OFFICES.find((o) => o.code === codeVal);
+                      setForm((f) => ({
+                        ...f,
+                        responsibilityCenter: codeVal,
+                        office: matchedOff?.name || f.office,
+                      }));
+                    }}
+                  >
+                    <option value="">-- Select Code --</option>
+                    {CCP_OFFICES.map((off) => (
+                      <option key={off.code} value={off.code}>
+                        {off.code} — {off.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="form-group">
