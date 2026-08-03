@@ -326,7 +326,7 @@ function appReducer(state, action) {
         PREPARED:               'FORWARDED_TO_TREASURY',
         FORWARDED_TO_TREASURY:  'FOR_APPROVAL_OP',
         FOR_APPROVAL_OP:        'APPROVED',
-        APPROVED:               'FOR_RELEASE',
+        APPROVED:               'OBLIGATED',
       };
 
       const nextStatus = transitions[bur.status];
@@ -338,8 +338,8 @@ function appReducer(state, action) {
       const now = new Date().toISOString();
       const statusNote = note || `Advanced to ${nextStatus.replace(/_/g, ' ')}`;
 
-      // On APPROVED: Obligate Funds
-      if (nextStatus === 'APPROVED') {
+      // On OBLIGATED: Obligate Funds
+      if (nextStatus === 'OBLIGATED') {
         newAllotments = JSON.parse(JSON.stringify(state.allotments));
         newAllotments[bur.fundCluster][bur.allotmentClass].obligated += bur.amount;
       }

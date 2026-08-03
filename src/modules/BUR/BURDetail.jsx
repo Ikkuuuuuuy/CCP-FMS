@@ -10,7 +10,7 @@ const BUR_LIFECYCLE = [
   { status: 'FORWARDED_TO_TREASURY', label: 'Forwarded to Treasury' },
   { status: 'FOR_APPROVAL_OP', label: 'For Approval OP' },
   { status: 'APPROVED', label: 'Approved' },
-  { status: 'FOR_RELEASE', label: 'For Release' },
+  { status: 'OBLIGATED', label: 'Obligated' },
 ];
 
 function LifecycleStepper({ currentStatus }) {
