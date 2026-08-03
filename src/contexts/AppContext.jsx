@@ -169,11 +169,11 @@ function appReducer(state, action) {
         taxTypes: taxTypes || ['EWT_2PCT', 'FINAL_VAT'],
         taxDeductions: taxDed,
         netAmount: taxDed.netAmount,
-        status: 'PENDING_ACCOUNTING',
+        status: action.payload.status || 'APPROVED_FOR_PAYMENT',
         createdAt: new Date().toISOString(),
         createdBy: actor.id,
         createdByName: actor.name,
-        history: [{ status: 'PENDING_ACCOUNTING', actor: actor.name, timestamp: new Date().toISOString(), note: 'DV created linked to BUR.' }],
+        history: [{ status: action.payload.status || 'APPROVED_FOR_PAYMENT', actor: actor.name, timestamp: new Date().toISOString(), note: 'DV created linked to BUR.' }],
       };
 
       const { entry: dvEntry, newSeq: auditSeq } = createAuditEntry(state, {
@@ -286,8 +286,6 @@ function appReducer(state, action) {
       if (idx === -1) throw new Error(`${type} not found.`);
       
       const item = state[collection][idx];
-      if (item.status !== 'PREPARED') throw new Error(`Only PREPARED documents can be updated.`);
-      
       const updated = { ...item, ...data };
       
       // If updating DV, recalculate taxes if grossClaim or taxTypes change

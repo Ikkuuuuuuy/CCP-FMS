@@ -12,6 +12,7 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
         payeeTIN: initialData.payeeTIN || '',
         address: initialData.address || '',
         modeOfPayment: initialData.modeOfPayment || 'Check',
+        status: initialData.status || 'APPROVED_FOR_PAYMENT',
         burRef: initialData.burRef || initialData.burNo || '',
         expenseAccountCode: initialData.expenseAccountCode || initialData.accountCode || '5021202000',
         grossClaim: initialData.grossClaim || initialData.amount || '',
@@ -24,6 +25,7 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
       payeeTIN: '',
       address: '',
       modeOfPayment: 'Check',
+      status: 'APPROVED_FOR_PAYMENT',
       burRef: '',
       expenseAccountCode: '5021202000',
       grossClaim: '',
@@ -62,6 +64,7 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
       payeeTIN: form.payeeTIN,
       address: form.address,
       modeOfPayment: form.modeOfPayment,
+      status: form.status,
       burRef: form.burRef || null,
       expenseAccountCode: form.expenseAccountCode,
       expenseAccountName: expenseAccounts.find((a) => a.code === form.expenseAccountCode)?.name,
@@ -116,12 +119,21 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
                   <input type="text" required className="form-control" placeholder="Full address"
                     value={form.address} onChange={set('address')} />
                 </div>
-                <div className="form-group mb-0">
+                <div className="form-group">
                   <label className="form-label">Mode of Payment <span className="required">*</span></label>
                   <select className="form-control" value={form.modeOfPayment} onChange={set('modeOfPayment')}>
                     <option value="Check">Check</option>
                     <option value="Cash">Cash</option>
                     <option value="Others">Others</option>
+                  </select>
+                </div>
+                <div className="form-group mb-0">
+                  <label className="form-label">Disbursement Status <span className="required">*</span></label>
+                  <select className="form-control" value={form.status} onChange={set('status')}>
+                    <option value="APPROVED_FOR_PAYMENT">Approved for Payment</option>
+                    <option value="FOR_CHECK_PREPARATION">For Check preparation</option>
+                    <option value="FOR_RELEASE">For Release</option>
+                    <option value="PAID">Paid</option>
                   </select>
                 </div>
               </div>
