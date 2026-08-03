@@ -75,6 +75,7 @@ export default function DVModule() {
       <div className="page-wrapper">
         <DVForm
           obligatedBURs={obligatedBURs}
+          allDVs={dvs}
           initialData={selectedDV || undefined}
           onSubmit={(data) => {
             try {
@@ -143,17 +144,17 @@ export default function DVModule() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
-            Status:
+            Filter Status:
           </label>
           <select
             className="form-control"
-            style={{ width: 170, padding: '6px 10px', fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: 'pointer' }}
+            style={{ width: 220 }}
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
-            {STATUS_FILTERS.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
+            {DV_STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
             ))}
           </select>
@@ -168,6 +169,7 @@ export default function DVModule() {
               <th>Date</th>
               <th>Payee</th>
               <th>BUR Reference</th>
+              <th>Assigned Staff</th>
               <th className="text-right">Gross Claim</th>
               <th className="text-right">Deductions</th>
               <th className="text-right">Net Amount</th>
@@ -178,7 +180,7 @@ export default function DVModule() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={9}>
+                <td colSpan={10}>
                   <div className="grid-empty">
                     <div className="grid-empty-icon">💳</div>
                     <div className="grid-empty-text">No Disbursement Vouchers found</div>
@@ -199,6 +201,11 @@ export default function DVModule() {
                       <div style={{ fontSize: 11, color: '#9CA3AF' }}>TIN: {dv.payeeTIN || '—'}</div>
                     </td>
                     <td className="mono" style={{ fontSize: 12, color: '#6B7280' }}>{dv.burRef || '—'}</td>
+                    <td>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#1F2937' }}>
+                        👤 {dv.assignedToName || 'Unassigned'}
+                      </div>
+                    </td>
                     <td className="text-right mono" style={{ fontWeight: 700 }}>{formatCurrency(dv.grossClaim)}</td>
                     <td className="text-right mono" style={{ color: '#DC2626', fontSize: 12 }}>
                       ({formatCurrency(dv.taxDeductions?.totalDeductions || 0)})

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Info } from 'lucide-react';
-import { CHART_OF_ACCOUNTS } from '../../data/seedData';
+import { CHART_OF_ACCOUNTS, MOCK_USERS } from '../../data/seedData';
 import { computeTaxDeductions, TAX_OPTIONS } from '../../utils/taxEngine';
 import { formatCurrency } from '../../utils/formatters';
 
-export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initialData }) {
+export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel, error, initialData }) {
   const [form, setForm] = useState(() => {
     if (initialData) {
       return {
@@ -13,6 +13,7 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
         address: initialData.address || '',
         modeOfPayment: initialData.modeOfPayment || 'Check',
         status: initialData.status || 'APPROVED_FOR_PAYMENT',
+        assignedTo: initialData.assignedTo || 'user-004',
         burRef: initialData.burRef || initialData.burNo || '',
         expenseAccountCode: initialData.expenseAccountCode || initialData.accountCode || '5021202000',
         grossClaim: initialData.grossClaim || initialData.amount || '',
@@ -26,6 +27,7 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
       address: '',
       modeOfPayment: 'Check',
       status: 'APPROVED_FOR_PAYMENT',
+      assignedTo: 'user-004',
       burRef: '',
       expenseAccountCode: '5021202000',
       grossClaim: '',
@@ -59,12 +61,15 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.payeeName || !form.grossClaim || parseFloat(form.grossClaim) <= 0) return;
+    const assignedUser = MOCK_USERS.find(u => u.id === form.assignedTo);
     onSubmit({
       payeeName: form.payeeName,
       payeeTIN: form.payeeTIN,
       address: form.address,
       modeOfPayment: form.modeOfPayment,
       status: form.status,
+      assignedTo: form.assignedTo,
+      assignedToName: assignedUser ? assignedUser.name : 'Unassigned',
       burRef: form.burRef || null,
       expenseAccountCode: form.expenseAccountCode,
       expenseAccountName: expenseAccounts.find((a) => a.code === form.expenseAccountCode)?.name,
@@ -127,7 +132,7 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
                     <option value="Others">Others</option>
                   </select>
                 </div>
-                <div className="form-group mb-0">
+                <div className="form-group mb-4">
                   <label className="form-label">Disbursement Status <span className="required">*</span></label>
                   <select className="form-control" value={form.status} onChange={set('status')}>
                     <option value="APPROVED_FOR_PAYMENT">Approved for Payment</option>
@@ -136,15 +141,25 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
                     <option value="PAID">Paid</option>
                   </select>
                 </div>
+                <div className="form-group mb-0">
+                  <label className="form-label">Assigned Personnel / Processor <span className="required">*</span></label>
+                  <select className="form-control" value={form.assignedTo} onChange={set('assignedTo')}>
+                    {MOCK_USERS.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} ({u.roleLabel})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
             {/* BUR Link */}
             <div className="card">
-              <div className="card-header"><div className="card-title">BUR Reference (Obligation Link)</div></div>
+              <div className="card-header"><div className="card-title">BUR Reference (Obligation Link - 1:1)</div></div>
               <div className="card-body">
                 <div className="form-group">
-                  <label className="form-label">Linked BUR No. (Obligation Reference)</label>
+                  <label className="form-label">Linked BUR No. (1 BUR to 1 DV Rule)</label>
                   <select className="form-control" value={form.burRef} onChange={(e) => {
                     const refNo = e.target.value;
                     const foundBUR = obligatedBURs.find((b) => b.burNo === refNo || b.id === refNo);
@@ -163,11 +178,16 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
                     }
                   }}>
                     <option value="">— Select an Obligated BUR to link —</option>
-                    {obligatedBURs.map((b) => (
-                      <option key={b.id} value={b.burNo}>
-                        {b.burNo} · {b.payeeName || b.office} · {formatCurrency(b.amount)}
-                      </option>
-                    ))}
+                    {obligatedBURs.map((b) => {
+                      const existingDV = (allDVs || []).find((d) => (d.burRef === b.burNo || d.burId === b.id) && d.id !== initialData?.id);
+                      const isLinked = !!existingDV;
+                      return (
+                        <option key={b.id} value={b.burNo} disabled={isLinked}>
+                          {b.burNo} · {b.payeeName || b.office} · {formatCurrency(b.amount)}
+                          {isLinked ? ` [Already Linked to ${existingDV.dvNo}]` : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                   <div className="form-hint">Selecting an obligated BUR auto-fills payee details, particulars, and account code.</div>
                 </div>

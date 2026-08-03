@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import {
-  FUND_CLUSTERS, ALLOTMENT_CLASSES, MFO_PAP_CODES, RESPONSIBILITY_CENTERS, CHART_OF_ACCOUNTS, CCP_OFFICES,
+  FUND_CLUSTERS, ALLOTMENT_CLASSES, MFO_PAP_CODES, RESPONSIBILITY_CENTERS, CHART_OF_ACCOUNTS, CCP_OFFICES, MOCK_USERS,
 } from '../../data/seedData';
 import { formatCurrency, calcUtilizationPct } from '../../utils/formatters';
 
@@ -18,6 +18,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
         accountCode: initialData.accountCode || '5021202000',
         amount: initialData.amount || '',
         status: initialData.status || 'OBLIGATED',
+        assignedTo: initialData.assignedTo || 'user-001',
         particulars: initialData.particulars || initialData.description || '',
         reference: initialData.reference || 'CONTRACT OF SERVICE',
         purpose: initialData.purpose || '',
@@ -34,6 +35,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
       accountCode: '5021202000',
       amount: '',
       status: 'OBLIGATED',
+      assignedTo: 'user-001',
       particulars: '',
       reference: 'CONTRACT OF SERVICE',
       purpose: '',
@@ -54,6 +56,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.amount || parseFloat(form.amount) <= 0 || !form.payeeName) return;
+    const assignedUser = MOCK_USERS.find(u => u.id === form.assignedTo);
     onSubmit({
       fundCluster: form.fundCluster,
       fundClusterName: form.fundCluster === '101' ? 'REGULAR' : 'SPECIAL',
@@ -64,6 +67,8 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
       accountCode: form.accountCode,
       amount: parseFloat(form.amount),
       status: form.status,
+      assignedTo: form.assignedTo,
+      assignedToName: assignedUser ? assignedUser.name : 'Unassigned',
       particulars: form.particulars,
       reference: form.reference,
       purpose: form.purpose,
@@ -212,6 +217,17 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
                     <option value="FORWARDED_TO_TREASURY">Forwarded to Treasury</option>
                     <option value="FOR_APPROVAL_OP">For Approval OP</option>
                     <option value="APPROVED">Approved</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Assigned Personnel / Processor <span className="required">*</span></label>
+                  <select className="form-control" value={form.assignedTo} onChange={set('assignedTo')}>
+                    {MOCK_USERS.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} ({u.roleLabel})
+                      </option>
+                    ))}
                   </select>
                 </div>
 

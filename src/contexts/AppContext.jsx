@@ -108,16 +108,20 @@ function appReducer(state, action) {
         ...action.payload,
         id: `bur-${Date.now()}`,
         burNo,
-        status: 'OBLIGATED', // Immediately obligate upon certification
+        status: action.payload.status || 'OBLIGATED',
+        assignedTo: action.payload.assignedTo || actor.id,
+        assignedToName: action.payload.assignedToName || actor.name,
         createdAt: new Date().toISOString(),
         createdBy: actor.id,
         createdByName: actor.name,
-        history: [{ status: 'OBLIGATED', actor: actor.name, timestamp: new Date().toISOString(), note: 'BUR created and certified.' }],
+        history: [{ status: action.payload.status || 'OBLIGATED', actor: actor.name, timestamp: new Date().toISOString(), note: 'BUR created.' }],
       };
 
-      // Instantly deduct allotment obligation
+      // Instantly deduct allotment obligation if status is OBLIGATED
       const newAllotments = JSON.parse(JSON.stringify(state.allotments));
-      newAllotments[fundCluster][allotmentClass].obligated += amount;
+      if (newBUR.status === 'OBLIGATED') {
+        newAllotments[fundCluster][allotmentClass].obligated += amount;
+      }
 
       const { entry: burEntry, newSeq: auditSeq1 } = createAuditEntry(state, {
         actorId: actor.id, actorName: actor.name,
@@ -139,13 +143,19 @@ function appReducer(state, action) {
     }
 
     case 'DOCUMENT_CREATE_DV': {
-      const { burRef, payeeName, payeeTIN, address, modeOfPayment, expenseAccountCode, grossClaim, taxTypes, particulars } = action.payload;
+      const { burRef, payeeName, payeeTIN, address, modeOfPayment, expenseAccountCode, grossClaim, taxTypes, particulars, assignedTo, assignedToName } = action.payload;
       const year = getCurrentYear();
       const month = getCurrentMonth();
 
       // Find linked BUR
       const bur = state.burs.find(b => b.burNo === burRef || b.id === burRef);
       if (!bur) throw new Error('Selected BUR reference not found.');
+
+      // Strict 1-to-1 BUR to DV constraint check
+      const existingDV = state.dvs.find(d => d.burRef === bur.burNo || d.burId === bur.id);
+      if (existingDV) {
+        throw new Error(`BUR (${bur.burNo}) is already connected to Disbursement Voucher (${existingDV.dvNo}). 1 BUR can only be connected to 1 DV.`);
+      }
 
       // Calculate tax deductions
       const taxDed = computeTaxDeductions(grossClaim, taxTypes || ['EWT_2PCT', 'FINAL_VAT']);
@@ -169,6 +179,8 @@ function appReducer(state, action) {
         taxTypes: taxTypes || ['EWT_2PCT', 'FINAL_VAT'],
         taxDeductions: taxDed,
         netAmount: taxDed.netAmount,
+        assignedTo: assignedTo || actor.id,
+        assignedToName: assignedToName || actor.name,
         status: action.payload.status || 'APPROVED_FOR_PAYMENT',
         createdAt: new Date().toISOString(),
         createdBy: actor.id,

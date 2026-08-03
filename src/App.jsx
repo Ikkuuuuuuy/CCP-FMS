@@ -12,6 +12,7 @@ import ReportsModule from './modules/Reports/ReportsModule';
 import AccountOverviewModule from './modules/AccountOverview/AccountOverviewModule';
 import TransactionLogsModule from './modules/TransactionLogs/TransactionLogsModule';
 import UserManagementModule from './modules/UserManagement/UserManagementModule';
+import WorkAssignmentModule from './modules/WorkAssignment/WorkAssignmentModule';
 import './styles/index.css';
 
 class ErrorBoundary extends React.Component {
@@ -97,6 +98,7 @@ function AppShell() {
       case 'account':      return <AccountOverviewModule />;
       case 'transactions': return <TransactionLogsModule />;
       case 'users':        return <UserManagementModule />;
+      case 'work-assignments': return <WorkAssignmentModule />;
       default:             return <Dashboard />;
     }
   };

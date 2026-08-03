@@ -64,6 +64,7 @@ const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard Analytics', icon: LayoutDashboard },
   { id: 'bur', label: 'Budget Utilization Requests', icon: FileText },
   { id: 'dv', label: 'Disbursement Vouchers', icon: CreditCard },
+  { id: 'work-assignments', label: 'Work Assignments', icon: Users },
   { id: 'ledger', label: 'Credit & Collections', icon: BookOpen },
   { id: 'reports', label: 'Financial Reports', icon: BarChart2 },
   { id: 'audit', label: 'Audit Logs', icon: ClipboardList },

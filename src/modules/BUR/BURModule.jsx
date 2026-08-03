@@ -203,6 +203,7 @@ export default function BURModule() {
               <th>BUR No.</th>
               <th>Payee Name</th>
               <th>RC Code</th>
+              <th>Assigned Staff</th>
               <th>Allotment Class</th>
               <th className="text-right">Obligated Amount</th>
               <th className="text-right">Disbursed Amount</th>
@@ -214,7 +215,7 @@ export default function BURModule() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={9}>
+                <td colSpan={10}>
                   <div className="grid-empty">
                     <div className="grid-empty-icon">📄</div>
                     <div className="grid-empty-text">No BURs found</div>
@@ -238,6 +239,11 @@ export default function BURModule() {
                       <div style={{ fontSize: 11, color: '#6B7280' }}>{bur.office || bur.responsibilityCenter}</div>
                     </td>
                     <td className="mono" style={{ fontSize: 12 }}>{bur.responsibilityCenter || '08'}</td>
+                    <td>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#1F2937' }}>
+                        👤 {bur.assignedToName || 'Unassigned'}
+                      </div>
+                    </td>
                     <td>
                       <span style={{
                         fontSize: 11, fontWeight: 700,
