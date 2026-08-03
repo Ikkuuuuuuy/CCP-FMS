@@ -6,19 +6,38 @@ import {
 import { formatCurrency, calcUtilizationPct } from '../../utils/formatters';
 
 export default function BURForm({ allotments, onSubmit, onCancel, error, initialData }) {
-  const [form, setForm] = useState(initialData || {
-    fundCluster: '101',
-    allotmentClass: 'MOOE',
-    office: 'Administrative Services',
-    responsibilityCenter: '08',
-    mfoPap: 'PAP-4.2',
-    accountCode: '5021202000',
-    amount: '',
-    particulars: '',
-    reference: 'CONTRACT OF SERVICE',
-    purpose: '',
-    payeeName: '',
-    address: '',
+  const [form, setForm] = useState(() => {
+    if (initialData) {
+      return {
+        ...initialData,
+        fundCluster: initialData.fundCluster || '101',
+        allotmentClass: initialData.allotmentClass || 'MOOE',
+        office: initialData.office || 'Administrative Services',
+        responsibilityCenter: initialData.responsibilityCenter || '08',
+        mfoPap: initialData.mfoPap || 'PAP-4.2',
+        accountCode: initialData.accountCode || '5021202000',
+        amount: initialData.amount || '',
+        particulars: initialData.particulars || initialData.description || '',
+        reference: initialData.reference || 'CONTRACT OF SERVICE',
+        purpose: initialData.purpose || '',
+        payeeName: initialData.payeeName || '',
+        address: initialData.address || '',
+      };
+    }
+    return {
+      fundCluster: '101',
+      allotmentClass: 'MOOE',
+      office: 'Administrative Services',
+      responsibilityCenter: '08',
+      mfoPap: 'PAP-4.2',
+      accountCode: '5021202000',
+      amount: '',
+      particulars: '',
+      reference: 'CONTRACT OF SERVICE',
+      purpose: '',
+      payeeName: '',
+      address: '',
+    };
   });
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));

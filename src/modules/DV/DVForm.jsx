@@ -5,16 +5,31 @@ import { computeTaxDeductions, TAX_OPTIONS } from '../../utils/taxEngine';
 import { formatCurrency } from '../../utils/formatters';
 
 export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initialData }) {
-  const [form, setForm] = useState(initialData || {
-    payeeName: '',
-    payeeTIN: '',
-    address: '',
-    modeOfPayment: 'Check',
-    burRef: '',
-    expenseAccountCode: '5-02-99',
-    grossClaim: '',
-    taxTypes: [],
-    particulars: '',
+  const [form, setForm] = useState(() => {
+    if (initialData) {
+      return {
+        payeeName: initialData.payeeName || '',
+        payeeTIN: initialData.payeeTIN || '',
+        address: initialData.address || '',
+        modeOfPayment: initialData.modeOfPayment || 'Check',
+        burRef: initialData.burRef || initialData.burNo || '',
+        expenseAccountCode: initialData.expenseAccountCode || initialData.accountCode || '5021202000',
+        grossClaim: initialData.grossClaim || initialData.amount || '',
+        taxTypes: Array.isArray(initialData.taxTypes) ? initialData.taxTypes : ['EWT_2PCT', 'FINAL_VAT'],
+        particulars: initialData.particulars || initialData.description || '',
+      };
+    }
+    return {
+      payeeName: '',
+      payeeTIN: '',
+      address: '',
+      modeOfPayment: 'Check',
+      burRef: '',
+      expenseAccountCode: '5021202000',
+      grossClaim: '',
+      taxTypes: ['EWT_2PCT', 'FINAL_VAT'],
+      particulars: '',
+    };
   });
 
   const [taxCalc, setTaxCalc] = useState({ finalVat: 0, ewt: 0, totalDeductions: 0, netAmount: 0 });
@@ -23,15 +38,16 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
 
   const toggleTax = (taxCode) => {
     setForm((f) => {
-      const taxes = f.taxTypes.includes(taxCode)
-        ? f.taxTypes.filter((t) => t !== taxCode)
-        : [...f.taxTypes, taxCode];
+      const currentTaxes = Array.isArray(f.taxTypes) ? f.taxTypes : [];
+      const taxes = currentTaxes.includes(taxCode)
+        ? currentTaxes.filter((t) => t !== taxCode)
+        : [...currentTaxes, taxCode];
       return { ...f, taxTypes: taxes };
     });
   };
 
   useEffect(() => {
-    const calc = computeTaxDeductions(parseFloat(form.grossClaim) || 0, form.taxTypes);
+    const calc = computeTaxDeductions(parseFloat(form.grossClaim) || 0, form.taxTypes || []);
     setTaxCalc(calc);
   }, [form.grossClaim, form.taxTypes]);
 
@@ -184,14 +200,14 @@ export default function DVForm({ obligatedBURs, onSubmit, onCancel, error, initi
                       <label key={tax.code} style={{
                         display: 'flex', alignItems: 'center', gap: 10,
                         padding: '9px 12px', border: '1px solid',
-                        borderColor: form.taxTypes.includes(tax.code) ? '#D4AF37' : '#E5E7EB',
+                        borderColor: (form.taxTypes || []).includes(tax.code) ? '#D4AF37' : '#E5E7EB',
                         borderRadius: 6, cursor: 'pointer',
-                        background: form.taxTypes.includes(tax.code) ? 'rgba(212,175,55,0.05)' : 'white',
+                        background: (form.taxTypes || []).includes(tax.code) ? 'rgba(212,175,55,0.05)' : 'white',
                         transition: 'all 150ms',
                       }}>
                         <input
                           type="checkbox"
-                          checked={form.taxTypes.includes(tax.code)}
+                          checked={(form.taxTypes || []).includes(tax.code)}
                           onChange={() => toggleTax(tax.code)}
                           style={{ accentColor: '#D4AF37' }}
                         />
