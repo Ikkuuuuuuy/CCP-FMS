@@ -17,6 +17,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
         mfoPap: initialData.mfoPap || 'PAP-4.2',
         accountCode: initialData.accountCode || '5021202000',
         amount: initialData.amount || '',
+        status: initialData.status || 'OBLIGATED',
         particulars: initialData.particulars || initialData.description || '',
         reference: initialData.reference || 'CONTRACT OF SERVICE',
         purpose: initialData.purpose || '',
@@ -32,6 +33,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
       mfoPap: 'PAP-4.2',
       accountCode: '5021202000',
       amount: '',
+      status: 'OBLIGATED',
       particulars: '',
       reference: 'CONTRACT OF SERVICE',
       purpose: '',
@@ -61,6 +63,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
       mfoPap: form.mfoPap,
       accountCode: form.accountCode,
       amount: parseFloat(form.amount),
+      status: form.status,
       particulars: form.particulars,
       reference: form.reference,
       purpose: form.purpose,
@@ -198,6 +201,17 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
                         {off.code} — {off.name}
                       </option>
                     ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">BUR Status <span className="required">*</span></label>
+                  <select className="form-control" value={form.status} onChange={set('status')}>
+                    <option value="OBLIGATED">Obligated (Certified)</option>
+                    <option value="PREPARED">Prepared</option>
+                    <option value="FORWARDED_TO_TREASURY">Forwarded to Treasury</option>
+                    <option value="FOR_APPROVAL_OP">For Approval OP</option>
+                    <option value="APPROVED">Approved</option>
                   </select>
                 </div>
 

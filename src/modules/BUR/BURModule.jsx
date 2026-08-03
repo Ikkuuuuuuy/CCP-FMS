@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, CheckCircle, XCircle, Eye, ChevronDown, Edit, Printer } from 'lucide-react';
+import { Plus, Search, Filter, CheckCircle, XCircle, Eye, ChevronDown, Edit, Printer, ArrowRight } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import StatusBadge from '../../components/StatusBadge';
 import Modal from '../../components/Modal';
@@ -8,6 +8,13 @@ import BURDetail from './BURDetail';
 import BURPrintTemplate from '../../components/Print/BURPrintTemplate';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { CCP_OFFICES } from '../../data/seedData';
+
+const BUR_STATUS_TRANSITIONS = {
+  PREPARED:              { label: 'Submit Box A',      action: 'ADVANCE' },
+  FORWARDED_TO_TREASURY: { label: 'Certify Box B',     action: 'ADVANCE' },
+  FOR_APPROVAL_OP:       { label: 'Approve Allotment', action: 'ADVANCE' },
+  APPROVED:              { label: 'Obligate BUR',      action: 'ADVANCE' },
+};
 
 export default function BURModule() {
   const { state, dispatch } = useApp();
@@ -37,6 +44,13 @@ export default function BURModule() {
       b.mfoPap?.toLowerCase().includes(searchText.toLowerCase());
     return matchStatus && matchOffice && matchSearch;
   });
+
+  const handleAdvance = (burId) => {
+    try {
+      dispatch({ type: 'DOCUMENT_ADVANCE', payload: { burId } });
+      setError('');
+    } catch (e) { setError(e.message); }
+  };
 
   const handleSubmit = (id) => {
     try {
@@ -243,7 +257,21 @@ export default function BURModule() {
                       <StatusBadge status={bur.status} />
                     </td>
                     <td className="text-center" onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', alignItems: 'center' }}>
+                        {bur.status !== 'OBLIGATED' && bur.status !== 'REJECTED' && (
+                          <button
+                            className="btn btn-sm btn-primary"
+                            style={{ fontSize: 11, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4 }}
+                            title="Advance to Next Stage"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAdvance(bur.id);
+                            }}
+                          >
+                            <ArrowRight size={12} />
+                            <span>{BUR_STATUS_TRANSITIONS[bur.status]?.label || 'Advance Stage'}</span>
+                          </button>
+                        )}
                         <button
                           className="btn btn-ghost btn-sm btn-icon"
                           title="View Details"

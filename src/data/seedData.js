@@ -233,8 +233,8 @@ export const MOCK_BURS = [
     createdAt: '2026-08-01T09:15:00.000Z',
     fundCluster: '101',
     fundClusterName: 'REGULAR',
-    responsibilityCenter: 'AGD',
-    office: 'Arts Group Division',
+    responsibilityCenter: 'PED',
+    office: 'Production and Exhibition Department',
     mfoPap: 'PAP-1.1',
     allotmentClass: 'MOOE',
     accountCode: '5-02-99',
@@ -248,6 +248,7 @@ export const MOCK_BURS = [
     status: 'OBLIGATED',
     certifiedByName: 'KAYE C. TINGA',
     approvedByName: 'LOURDES S. MENDOZA',
+    history: [{ status: 'OBLIGATED', actor: 'KAYE C. TINGA', timestamp: '2026-08-01T09:15:00.000Z', note: 'Initial obligation' }],
   },
   {
     id: 'bur-002',
@@ -255,8 +256,8 @@ export const MOCK_BURS = [
     createdAt: '2026-08-01T11:30:00.000Z',
     fundCluster: '101',
     fundClusterName: 'REGULAR',
-    responsibilityCenter: 'VMD',
-    office: 'Venue Management Division',
+    responsibilityCenter: 'ASD',
+    office: 'Administrative Services Department',
     mfoPap: 'PAP-4.2',
     allotmentClass: 'MOOE',
     accountCode: '5-02-11',
@@ -267,9 +268,10 @@ export const MOCK_BURS = [
     modeOfPayment: 'Check',
     particulars: 'Tanghalang Nicanor Abelardo Theater Air Conditioning & Chiller Maintenance',
     purpose: 'Quarterly preventative maintenance for Main Theater HVAC system',
-    status: 'OBLIGATED',
+    status: 'FOR_APPROVAL_OP',
     certifiedByName: 'KAYE C. TINGA',
     approvedByName: 'LOURDES S. MENDOZA',
+    history: [{ status: 'FOR_APPROVAL_OP', actor: 'KAYE C. TINGA', timestamp: '2026-08-01T11:30:00.000Z', note: 'Forwarded for OP approval' }],
   },
   {
     id: 'bur-003',
@@ -277,8 +279,8 @@ export const MOCK_BURS = [
     createdAt: '2026-08-02T08:20:00.000Z',
     fundCluster: '151',
     fundClusterName: 'SPECIAL',
-    responsibilityCenter: 'MSD',
-    office: 'Marketing and Sponsorships Division',
+    responsibilityCenter: 'MD',
+    office: 'Marketing Department',
     mfoPap: 'PAP-1.2',
     allotmentClass: 'MOOE',
     accountCode: '5-02-04',
@@ -289,9 +291,10 @@ export const MOCK_BURS = [
     modeOfPayment: 'Check',
     particulars: 'Pasinaya 2026 Open House Festival National Arts Promotion & Media Campaign',
     purpose: 'National promotion and printing of Pasinaya 2026 festival guidebooks',
-    status: 'APPROVED',
+    status: 'FORWARDED_TO_TREASURY',
     certifiedByName: 'KAYE C. TINGA',
     approvedByName: 'LOURDES S. MENDOZA',
+    history: [{ status: 'FORWARDED_TO_TREASURY', actor: 'KAYE C. TINGA', timestamp: '2026-08-02T08:20:00.000Z', note: 'Forwarded to Treasury' }],
   },
   {
     id: 'bur-004',
@@ -299,8 +302,8 @@ export const MOCK_BURS = [
     createdAt: '2026-08-02T09:40:00.000Z',
     fundCluster: '104',
     fundClusterName: 'TRUST',
-    responsibilityCenter: 'VMD',
-    office: 'Venue Management Division',
+    responsibilityCenter: 'ASD',
+    office: 'Administrative Services Department',
     mfoPap: 'PAP-4.2',
     allotmentClass: 'CO',
     accountCode: '1-12-05',
@@ -314,6 +317,7 @@ export const MOCK_BURS = [
     status: 'PREPARED',
     certifiedByName: 'KAYE C. TINGA',
     approvedByName: 'LOURDES S. MENDOZA',
+    history: [{ status: 'PREPARED', actor: 'KAYE C. TINGA', timestamp: '2026-08-02T09:40:00.000Z', note: 'BUR Prepared' }],
   },
   {
     id: 'bur-005',
@@ -321,8 +325,8 @@ export const MOCK_BURS = [
     createdAt: '2026-08-02T10:15:00.000Z',
     fundCluster: '101',
     fundClusterName: 'REGULAR',
-    responsibilityCenter: 'AGD',
-    office: 'Arts Group Division',
+    responsibilityCenter: 'PED',
+    office: 'Production and Exhibition Department',
     mfoPap: 'PAP-1.1',
     allotmentClass: 'MOOE',
     accountCode: '5-02-99',
@@ -333,9 +337,10 @@ export const MOCK_BURS = [
     modeOfPayment: 'Check',
     particulars: 'CCP Virgin Labfest Theater Festival Lighting & Production Expenses',
     purpose: 'Professional theatrical lighting equipment rental for Virgin Labfest 2026',
-    status: 'OBLIGATED',
+    status: 'APPROVED',
     certifiedByName: 'KAYE C. TINGA',
     approvedByName: 'LOURDES S. MENDOZA',
+    history: [{ status: 'APPROVED', actor: 'KAYE C. TINGA', timestamp: '2026-08-02T10:15:00.000Z', note: 'Approved' }],
   }
 ];
 
@@ -368,6 +373,7 @@ export const MOCK_DVS = [
     jevNo: 'JEV-2026-08-001',
     certifiedByName: 'LOURDES S. MENDOZA',
     approvedByName: 'KAYE C. TINGA',
+    history: [{ status: 'PAID', actor: 'System', timestamp: '2026-08-01T10:00:00.000Z', note: 'Stamped PAID' }],
   },
   {
     id: 'dv-002',
@@ -390,6 +396,7 @@ export const MOCK_DVS = [
     status: 'FOR_RELEASE',
     certifiedByName: 'LOURDES S. MENDOZA',
     approvedByName: 'KAYE C. TINGA',
+    history: [{ status: 'FOR_RELEASE', actor: 'System', timestamp: '2026-08-01T14:30:00.000Z', note: 'Marked for Release' }],
   },
   {
     id: 'dv-003',
@@ -413,6 +420,7 @@ export const MOCK_DVS = [
     bankName: 'LANDBANK',
     certifiedByName: 'LOURDES S. MENDOZA',
     approvedByName: 'KAYE C. TINGA',
+    history: [{ status: 'FOR_CHECK_PREPARATION', actor: 'System', timestamp: '2026-08-02T11:00:00.000Z', note: 'Check Preparation' }],
   },
   {
     id: 'dv-004',
@@ -435,6 +443,7 @@ export const MOCK_DVS = [
     status: 'APPROVED_FOR_PAYMENT',
     certifiedByName: 'LOURDES S. MENDOZA',
     approvedByName: 'KAYE C. TINGA',
+    history: [{ status: 'APPROVED_FOR_PAYMENT', actor: 'System', timestamp: '2026-08-02T13:15:00.000Z', note: 'Approved for Payment' }],
   }
 ];
 

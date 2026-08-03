@@ -256,7 +256,7 @@ function appReducer(state, action) {
           checkNo: '527225', checkDate: 'July 28, 2026', bankName: 'LANDBANK',
           receivedByName: 'REYMART P. CASTILO', receivedDate: 'July 29, 2026'
         }),
-        history: [...dv.history, { status: nextStatus, actor: actor.name, timestamp: now, note: `Advanced to ${nextStatus}` }],
+        history: [...(Array.isArray(dv.history) ? dv.history : []), { status: nextStatus, actor: actor.name, timestamp: now, note: `Advanced to ${nextStatus}` }],
       };
 
       const { entry: dvAudit, newSeq: auditSeq } = createAuditEntry(state, {
@@ -378,7 +378,7 @@ function appReducer(state, action) {
         ...bur,
         status: nextStatus,
         ...(nextStatus === 'APPROVED' && { certifiedAt: now, certifiedBy: actor.id }),
-        history: [...bur.history, { status: nextStatus, actor: actor.name, timestamp: now, note: statusNote }],
+        history: [...(Array.isArray(bur.history) ? bur.history : []), { status: nextStatus, actor: actor.name, timestamp: now, note: statusNote }],
       };
 
       const { entry: burAudit, newSeq: auditSeq1 } = createAuditEntry(state, {
@@ -400,7 +400,7 @@ function appReducer(state, action) {
           ...dv,
           status: nextStatus,
           ...(nextStatus === 'FOR_RELEASE' && { paidAt: now, paidBy: actor.id }),
-          history: [...dv.history, { status: nextStatus, actor: actor.name, timestamp: now, note: statusNote }],
+          history: [...(Array.isArray(dv.history) ? dv.history : []), { status: nextStatus, actor: actor.name, timestamp: now, note: statusNote }],
         };
         
         const { entry: dvAudit, newSeq: tempSeq } = createAuditEntry({ ...state, sequences: { ...state.sequences, audit: auditSeq1 } }, {
@@ -426,6 +426,39 @@ function appReducer(state, action) {
       };
     }
 
+    case 'DV_REJECT': {
+      const { id, reason } = action.payload;
+      const dIdx = state.dvs.findIndex((d) => d.id === id);
+      if (dIdx === -1) throw new Error('DV not found.');
+      const dv = state.dvs[dIdx];
+      const now = new Date().toISOString();
+
+      const updatedDv = {
+        ...dv,
+        status: 'REJECTED',
+        rejectedAt: now,
+        rejectedBy: actor.id,
+        rejectionReason: reason,
+        history: [...(Array.isArray(dv.history) ? dv.history : []), { status: 'REJECTED', actor: actor.name, timestamp: now, note: `Rejected: ${reason}` }],
+      };
+
+      const { entry: dvAudit, newSeq: auditSeq } = createAuditEntry(state, {
+        actorId: actor.id, actorName: actor.name,
+        module: 'DV', actionType: 'REJECT',
+        documentRef: dv.dvNo, oldData: { status: dv.status }, newData: { status: 'REJECTED', reason },
+      });
+
+      const newDVs = [...state.dvs];
+      newDVs[dIdx] = updatedDv;
+
+      return {
+        ...state,
+        dvs: newDVs,
+        auditLog: [...state.auditLog, dvAudit],
+        sequences: { ...state.sequences, audit: auditSeq },
+      };
+    }
+
     case 'DOCUMENT_REJECT': {
       const { burId, reason } = action.payload;
       const bIdx = state.burs.findIndex((b) => b.id === burId);
@@ -443,7 +476,7 @@ function appReducer(state, action) {
         rejectedAt: now,
         rejectedBy: actor.id,
         rejectionReason: reason,
-        history: [...bur.history, { status: 'REJECTED', actor: actor.name, timestamp: now, note: `Rejected: ${reason}` }],
+        history: [...(Array.isArray(bur.history) ? bur.history : []), { status: 'REJECTED', actor: actor.name, timestamp: now, note: `Rejected: ${reason}` }],
       };
 
       const { entry: burAudit, newSeq: auditSeq1 } = createAuditEntry(state, {
@@ -466,7 +499,7 @@ function appReducer(state, action) {
           rejectedAt: now,
           rejectedBy: actor.id,
           rejectionReason: reason,
-          history: [...dv.history, { status: 'REJECTED', actor: actor.name, timestamp: now, note: `Rejected: ${reason}` }],
+          history: [...(Array.isArray(dv.history) ? dv.history : []), { status: 'REJECTED', actor: actor.name, timestamp: now, note: `Rejected: ${reason}` }],
         };
         
         const { entry: dvAudit, newSeq: tempSeq } = createAuditEntry({ ...state, sequences: { ...state.sequences, audit: auditSeq1 } }, {
