@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { SEED_ALLOTMENTS, MOCK_USERS, MOCK_BURS, MOCK_DVS, MOCK_JOURNAL_ENTRIES } from '../data/seedData';
+import { SEED_ALLOTMENTS, MOCK_USERS, MOCK_BURS, MOCK_DVS, MOCK_JOURNAL_ENTRIES, MOCK_AUDIT_LOGS } from '../data/seedData';
 import {
   generateBURNumber, generateDVNumber, generateJENumber,
   generateAuditLogId, getCurrentYear, getCurrentMonth, getTodayISO,
@@ -19,6 +19,9 @@ const getInitialState = () => {
       const parsed = JSON.parse(saved);
       // Validate structure before restoring (ensure mock data loaded if empty)
       if (parsed.burs && parsed.dvs && parsed.journalEntries && parsed.auditLog && parsed.allotments) {
+        if (!parsed.auditLog || parsed.auditLog.length === 0) {
+          parsed.auditLog = MOCK_AUDIT_LOGS;
+        }
         if (parsed.burs.length === 0 && parsed.dvs.length === 0) {
           parsed.burs = MOCK_BURS;
           parsed.dvs = MOCK_DVS;
@@ -34,9 +37,9 @@ const getInitialState = () => {
     burs: MOCK_BURS,
     dvs: MOCK_DVS,
     journalEntries: MOCK_JOURNAL_ENTRIES,
-    auditLog: [],
+    auditLog: MOCK_AUDIT_LOGS,
     allotments: JSON.parse(JSON.stringify(SEED_ALLOTMENTS)),
-    sequences: { bur: { 2026: { 8: 5 } }, dv: 4, je: 3, audit: 0 },
+    sequences: { bur: { 2026: { 8: 5 } }, dv: 4, je: 3, audit: 9 },
   };
 };
 

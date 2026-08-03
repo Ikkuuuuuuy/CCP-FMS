@@ -464,3 +464,99 @@ export const MOCK_JOURNAL_ENTRIES = [
   }
 ];
 
+// =============================================================================
+// Mock System Audit Activity Logs (COA-Compliant Security Audit Trail)
+// =============================================================================
+export const MOCK_AUDIT_LOGS = [
+  {
+    log_id: 'LOG-2026-0001',
+    timestamp: '2026-08-01T08:30:00.000Z',
+    actor_id: 'user-001',
+    actor_name: 'Kaye C. Tinga (Budget Officer)',
+    module: 'BUR',
+    action_type: 'CREATE',
+    document_ref: '26-08-0001',
+    payload_delta: { old: null, new: { status: 'PENDING_CERTIFICATION', payeeName: 'LSERV Corporation', amount: 1250000.00 } }
+  },
+  {
+    log_id: 'LOG-2026-0002',
+    timestamp: '2026-08-01T09:15:00.000Z',
+    actor_id: 'user-002',
+    actor_name: 'Lourdes S. Mendoza (Chief Accountant)',
+    module: 'BUR',
+    action_type: 'CERTIFY',
+    document_ref: '26-08-0001',
+    payload_delta: { old: { status: 'PENDING_CERTIFICATION' }, new: { status: 'OBLIGATED', certifiedByName: 'KAYE C. TINGA' } }
+  },
+  {
+    log_id: 'LOG-2026-0003',
+    timestamp: '2026-08-01T10:00:00.000Z',
+    actor_id: 'user-004',
+    actor_name: 'Ricardo Lim (Treasury)',
+    module: 'DV',
+    action_type: 'CREATE',
+    document_ref: 'DV-08-0001-26',
+    payload_delta: { old: null, new: { burRef: '26-08-0001', grossClaim: 1250000.00, status: 'PREPARED' } }
+  },
+  {
+    log_id: 'LOG-2026-0004',
+    timestamp: '2026-08-01T11:45:00.000Z',
+    actor_id: 'user-002',
+    actor_name: 'Lourdes S. Mendoza (Chief Accountant)',
+    module: 'DV',
+    action_type: 'PAID',
+    document_ref: 'DV-08-0001-26',
+    payload_delta: { old: { status: 'PREPARED' }, new: { status: 'PAID', netAmount: 1162500.00 } }
+  },
+  {
+    log_id: 'LOG-2026-0005',
+    timestamp: '2026-08-01T13:20:00.000Z',
+    actor_id: 'user-003',
+    actor_name: 'Juan Dela Cruz (Bookkeeper)',
+    module: 'LEDGER',
+    action_type: 'POST',
+    document_ref: 'JE-2026-08-001',
+    payload_delta: { old: { status: 'UNPOSTED' }, new: { status: 'POSTED', debitTotal: 1250000.00, creditTotal: 1250000.00 } }
+  },
+  {
+    log_id: 'LOG-2026-0006',
+    timestamp: '2026-08-02T09:10:00.000Z',
+    actor_id: 'user-001',
+    actor_name: 'Kaye C. Tinga (Budget Officer)',
+    module: 'BUR',
+    action_type: 'CREATE',
+    document_ref: '26-08-0002',
+    payload_delta: { old: null, new: { status: 'PENDING_CERTIFICATION', payeeName: 'MERALCO Industrial Services', amount: 485000.00 } }
+  },
+  {
+    log_id: 'LOG-2026-0007',
+    timestamp: '2026-08-02T10:30:00.000Z',
+    actor_id: 'user-002',
+    actor_name: 'Lourdes S. Mendoza (Chief Accountant)',
+    module: 'BUR',
+    action_type: 'CERTIFY',
+    document_ref: '26-08-0002',
+    payload_delta: { old: { status: 'PENDING_CERTIFICATION' }, new: { status: 'OBLIGATED' } }
+  },
+  {
+    log_id: 'LOG-2026-0008',
+    timestamp: '2026-08-02T14:15:00.000Z',
+    actor_id: 'user-004',
+    actor_name: 'Ricardo Lim (Treasury)',
+    module: 'DV',
+    action_type: 'PAID',
+    document_ref: 'DV-08-0002-26',
+    payload_delta: { old: { status: 'PENDING_ACCOUNTING' }, new: { status: 'PAID', netAmount: 451050.00 } }
+  },
+  {
+    log_id: 'LOG-2026-0009',
+    timestamp: '2026-08-03T08:05:00.000Z',
+    actor_id: 'user-003',
+    actor_name: 'Juan Dela Cruz (Bookkeeper)',
+    module: 'LEDGER',
+    action_type: 'POST',
+    document_ref: 'JE-2026-08-002',
+    payload_delta: { old: { status: 'UNPOSTED' }, new: { status: 'POSTED' } }
+  }
+];
+
