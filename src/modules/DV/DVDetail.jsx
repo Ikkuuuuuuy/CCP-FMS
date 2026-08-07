@@ -44,14 +44,28 @@ function LifecycleStepper({ currentStatus }) {
   );
 }
 
+const BUR_STATUS_TRANSITIONS = {
+  PREPARED:              { label: 'Submit Box A' },
+  FORWARDED_TO_TREASURY: { label: 'Certify Box B' },
+  FOR_APPROVAL_OP:       { label: 'Approve Allotment' },
+  APPROVED:              { label: 'Obligate BUR' },
+};
+
 export default function DVDetail({ dv, onBack }) {
   const { state, dispatch } = useApp();
-  const { currentUser } = state;
+  const { currentUser, burs } = state;
   const isPaid = dv.status === 'PAID';
   const canAdvance = currentUser?.permissions.includes('all') || currentUser?.permissions.includes('dv.submit') || true;
 
+  const linkedBUR = (burs || []).find((b) => b.burNo === dv.burRef || b.id === dv.burId || b.id === dv.burRef);
+
   const handleAdvance = () => {
     dispatch({ type: 'DV_ADVANCE', payload: { id: dv.id } });
+  };
+
+  const handleAdvanceBUR = () => {
+    if (!linkedBUR) return;
+    dispatch({ type: 'DOCUMENT_ADVANCE', payload: { burId: linkedBUR.id } });
   };
 
   const handleReject = () => {
@@ -68,7 +82,15 @@ export default function DVDetail({ dv, onBack }) {
               <ArrowLeft size={14} /> Back to list
             </button>
             <div className="page-title" style={{ fontFamily: 'JetBrains Mono, monospace' }}>{dv.dvNo}</div>
-            <div style={{ marginTop: 6 }}><StatusBadge status={dv.status} /></div>
+            <div style={{ marginTop: 6, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <StatusBadge status={dv.status} />
+              {linkedBUR && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F3F4F6', padding: '4px 10px', borderRadius: 6, fontSize: 12 }}>
+                  <span style={{ fontWeight: 600, color: '#4B5563' }}>BUR ({linkedBUR.burNo}):</span>
+                  <StatusBadge status={linkedBUR.status} />
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {dv.status !== 'PAID' && dv.status !== 'REJECTED' && (
@@ -128,19 +150,45 @@ export default function DVDetail({ dv, onBack }) {
               <div className="card-header"><div className="card-title">DV Details</div></div>
               <div className="card-body">
                 {[
-                  ['DV Number', dv.dvNo, true],
-                  ['Payee Name', dv.payeeName, false],
-                  ['Payee TIN', dv.payeeTIN || '—', true],
-                  ['Address', dv.address || '—', false],
-                  ['Mode of Payment', dv.modeOfPayment, false],
-                  ['BUR Reference', dv.burRef || 'Unlinked', true],
-                  ['Expense Account', dv.expenseAccountCode, true],
+                  ['DV Number', dv.dvNo],
+                  ['Payee Name', dv.payeeName],
+                  ['Payee TIN', dv.payeeTIN || '—'],
+                  ['Address', dv.address || '—'],
+                  ['Mode of Payment', dv.modeOfPayment],
+                  ['Expense Account', dv.expenseAccountCode],
                 ].map(([label, val]) => (
                   <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F3F4F6' }}>
                     <span style={{ fontSize: 12, color: '#6B7280' }}>{label}</span>
                     <span style={{ fontSize: 13, fontWeight: 600 }}>{val}</span>
                   </div>
                 ))}
+
+                {/* Linked BUR details section */}
+                <div style={{ padding: '10px 0', borderBottom: '1px solid #F3F4F6' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, color: '#6B7280' }}>BUR Reference</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>{dv.burRef || 'Unlinked'}</span>
+                  </div>
+                  {linkedBUR && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, padding: '8px 12px', background: '#F9FAFB', borderRadius: 6, border: '1px solid #E5E7EB' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280' }}>BUR STATUS:</span>
+                        <StatusBadge status={linkedBUR.status} />
+                      </div>
+                      {BUR_STATUS_TRANSITIONS[linkedBUR.status] && (
+                        <button
+                          className="btn btn-sm"
+                          style={{ fontSize: 11, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4, background: '#2563EB', color: '#FFF', border: 'none', borderRadius: 4, fontWeight: 600, cursor: 'pointer' }}
+                          onClick={handleAdvanceBUR}
+                          title={`Advance BUR ${linkedBUR.burNo} status`}
+                        >
+                          <ArrowRight size={12} />
+                          <span>Move BUR: {BUR_STATUS_TRANSITIONS[linkedBUR.status].label}</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
