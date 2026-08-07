@@ -92,7 +92,21 @@ export default function DVDetail({ dv, onBack }) {
               )}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {linkedBUR && BUR_STATUS_TRANSITIONS[linkedBUR.status] && (
+              <button
+                className="btn"
+                onClick={handleAdvanceBUR}
+                style={{
+                  background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+                  color: '#FFF', fontWeight: 700, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8,
+                  boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)', border: 'none', borderRadius: 6
+                }}
+              >
+                <ArrowRight size={15} />
+                <span>Move BUR ({linkedBUR.burNo}): {BUR_STATUS_TRANSITIONS[linkedBUR.status].label}</span>
+              </button>
+            )}
             {dv.status !== 'PAID' && dv.status !== 'REJECTED' && (
               <button className="btn btn-primary" onClick={handleAdvance} style={{
                 background: 'linear-gradient(135deg, #059669, #047857)',
