@@ -604,7 +604,7 @@ function appReducer(state, action) {
         folio: entryData.folio || '',
         debit,
         credit,
-        balance: Math.max(0, newBal),
+        balance: Math.max(0, Math.round(newBal * 100) / 100),
         dateMarker: entryData.dateMarker || ''
       };
 

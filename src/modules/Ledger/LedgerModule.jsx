@@ -567,6 +567,7 @@ export default function LedgerModule() {
       {/* MODAL: ADD LEDGER ENTRY */}
       {isAddModalOpen && (
         <Modal
+          isOpen={isAddModalOpen}
           title={`Add Entry to ${activeLedger?.accountOf}`}
           onClose={() => setIsAddModalOpen(false)}
         >
