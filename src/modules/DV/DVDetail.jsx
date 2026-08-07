@@ -78,7 +78,8 @@ export default function DVDetail({ dv, onBack }) {
                 boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
               }}>
                 <span>
-                  {dv.status === 'PENDING_ACCOUNTING' ? 'Approve for Payment (Accounting Division)' :
+                  {dv.status === 'PREPARED' ? 'Submit to Accounting' :
+                   dv.status === 'PENDING_ACCOUNTING' ? 'Approve for Payment (Accounting Division)' :
                    dv.status === 'APPROVED_FOR_PAYMENT' ? 'Proceed to Check Preparation (Treasury Division)' :
                    dv.status === 'FOR_CHECK_PREPARATION' ? 'Release Payment (Treasury Division)' :
                    'Stamp PAID & Transmit to Bookkeeping'}

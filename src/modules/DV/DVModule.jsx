@@ -218,20 +218,6 @@ export default function DVModule() {
                     </td>
                     <td className="text-center" onClick={(e) => e.stopPropagation()}>
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'center', alignItems: 'center' }}>
-                        {dv.status !== 'PAID' && dv.status !== 'REJECTED' && (
-                          <button
-                            className="btn btn-sm btn-primary"
-                            style={{ fontSize: 11, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4 }}
-                            title="Advance to Next Stage"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAdvance(dv.id);
-                            }}
-                          >
-                            <ArrowRight size={12} />
-                            <span>{DV_STATUS_TRANSITIONS[dv.status]?.label || 'Advance Stage'}</span>
-                          </button>
-                        )}
                         <button
                           className="btn btn-ghost btn-sm btn-icon"
                           title="View Details"
