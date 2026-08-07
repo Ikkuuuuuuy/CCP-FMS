@@ -5,6 +5,14 @@ import { formatCurrency, formatDateTime } from '../../utils/formatters';
 import { useApp } from '../../contexts/AppContext';
 import DVPrintTemplate from '../../components/Print/DVPrintTemplate';
 
+const BUR_LIFECYCLE = [
+  { status: 'PREPARED', label: 'Prepared' },
+  { status: 'FORWARDED_TO_TREASURY', label: 'Forwarded to Treasury' },
+  { status: 'FOR_APPROVAL_OP', label: 'For Approval OP' },
+  { status: 'APPROVED', label: 'Approved' },
+  { status: 'OBLIGATED', label: 'Obligated' },
+];
+
 const DV_LIFECYCLE = [
   { status: 'PENDING_ACCOUNTING', label: 'Pending Accounting' },
   { status: 'APPROVED_FOR_PAYMENT', label: 'Approved for Payment' },
@@ -13,33 +21,41 @@ const DV_LIFECYCLE = [
   { status: 'PAID', label: 'Paid' },
 ];
 
-function LifecycleStepper({ currentStatus }) {
+function GenericLifecycleStepper({ steps, currentStatus, title }) {
   const isRejected = currentStatus === 'REJECTED';
-  const currentIdx = DV_LIFECYCLE.findIndex((s) => s.status === currentStatus);
+  const currentIdx = steps.findIndex((s) => s.status === currentStatus);
 
   return (
-    <div className="lifecycle-steps">
-      {DV_LIFECYCLE.map((step, i) => {
-        let stepClass = '';
-        if (isRejected && i <= currentIdx) stepClass = i === currentIdx ? 'rejected' : 'completed';
-        else if (i < currentIdx) stepClass = 'completed';
-        else if (i === currentIdx || (currentStatus === 'PAID' && step.status === 'PAID')) stepClass = 'active';
-
-        return (
-          <div key={step.status} className={`lifecycle-step ${stepClass}`}>
-            <div className="lifecycle-step-dot">
-              {stepClass === 'completed' || currentStatus === 'PAID' ? '✓' : stepClass === 'rejected' ? '✕' : i + 1}
-            </div>
-            <div className="lifecycle-step-label">{step.label}</div>
-          </div>
-        );
-      })}
-      {isRejected && currentIdx === -1 && (
-        <div className="lifecycle-step rejected">
-          <div className="lifecycle-step-dot">✕</div>
-          <div className="lifecycle-step-label">Rejected</div>
+    <div style={{ padding: '12px 16px', background: '#FAFAFA', borderRadius: 8, border: '1px solid #F3F4F6' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>{title}</span>
+          <StatusBadge status={currentStatus} />
         </div>
-      )}
+      </div>
+      <div className="lifecycle-steps" style={{ margin: 0 }}>
+        {steps.map((step, i) => {
+          let stepClass = '';
+          if (isRejected && i <= currentIdx) stepClass = i === currentIdx ? 'rejected' : 'completed';
+          else if (i < currentIdx) stepClass = 'completed';
+          else if (i === currentIdx || (currentStatus === 'PAID' && step.status === 'PAID') || (currentStatus === 'OBLIGATED' && step.status === 'OBLIGATED')) stepClass = 'active';
+
+          return (
+            <div key={step.status} className={`lifecycle-step ${stepClass}`}>
+              <div className="lifecycle-step-dot">
+                {stepClass === 'completed' || (currentStatus === 'PAID' && step.status === 'PAID') || (currentStatus === 'OBLIGATED' && step.status === 'OBLIGATED') ? '✓' : stepClass === 'rejected' ? '✕' : i + 1}
+              </div>
+              <div className="lifecycle-step-label">{step.label}</div>
+            </div>
+          );
+        })}
+        {isRejected && currentIdx === -1 && (
+          <div className="lifecycle-step rejected">
+            <div className="lifecycle-step-dot">✕</div>
+            <div className="lifecycle-step-label">Rejected</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -136,7 +152,21 @@ export default function DVDetail({ dv, onBack }) {
           </div>
         </div>
 
-        <LifecycleStepper currentStatus={dv.status} />
+        {/* Dual Stepper Diagrams for BUR and DV */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24, background: '#FFF', padding: 16, borderRadius: 12, border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          {linkedBUR && (
+            <GenericLifecycleStepper
+              title={`BUR Process Track — BUR No. ${linkedBUR.burNo}`}
+              steps={BUR_LIFECYCLE}
+              currentStatus={linkedBUR.status}
+            />
+          )}
+          <GenericLifecycleStepper
+            title={`DV Process Track — DV No. ${dv.dvNo}`}
+            steps={DV_LIFECYCLE}
+            currentStatus={dv.status}
+          />
+        </div>
 
         {dv.status === 'REJECTED' && (
           <div className="alert alert-danger mb-4">
