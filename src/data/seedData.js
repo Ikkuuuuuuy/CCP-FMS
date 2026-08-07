@@ -599,3 +599,62 @@ export const MOCK_AUDIT_LOGS = [
   }
 ];
 
+// =============================================================================
+// Mock CCP Subsidiary Ledgers (Physical Sheet Replica & Client Accounts)
+// =============================================================================
+export const MOCK_SUBSIDIARY_LEDGERS = [
+  {
+    id: 'SL-063',
+    accountSymbol: '63',
+    accountOf: 'PHILIPPINE SAILING ASSOCIATION',
+    address: 'CCP Complex, Pasay City',
+    sheetNo: '63',
+    period: 'Jan. 1, 2025 to Dec. 31, 2025',
+    memo: [
+      'Rental 895,540.80',
+      'garbage 1,680.-',
+      'TOTAL 897,220.80',
+      'due every 5th of the month'
+    ],
+    entries: [
+      { id: 'e-1', date: '2025-01-01', month: 'Jan. 1, 2025 to Dec. 31, 2025', year: '2025', reference: '', particulars: 'Forwarded Balance', folio: '', debit: 0, credit: 0, balance: 0 },
+      { id: 'e-2', date: '2025-06-17', month: 'June', day: '17', year: '2025', reference: 'SA 06-25-0414', particulars: 'Electric Consumption - May 8 - June 7, 2025', folio: 'pd/', debit: 14828.08, credit: 0, balance: 14828.08 },
+      { id: 'e-3', date: '2025-06-17', month: '', day: '', year: '', reference: '-0415', particulars: 'Water Consumption - May 8 - June 7, 2025', folio: 'pd', debit: 17957.87, credit: 0, balance: 32779.95, dateMarker: '7/31/25' },
+      { id: 'e-4', date: '2025-06-25', month: '', day: '25', year: '', reference: '6264240 NV', particulars: 'payment electric/water 5/8-6/7/25', folio: '', debit: 0, credit: 32779.95, balance: 0 },
+      { id: 'e-5', date: '2025-07-05', month: 'July', day: '', year: '', reference: 'SA07-25-0437', particulars: 'rental - July 2025', folio: 'pd/', debit: 895540.80, credit: 0, balance: 895540.80 },
+      { id: 'e-6', date: '2025-07-05', month: '', day: '', year: '', reference: '-0438', particulars: 'garbage - July 2025', folio: 'pd', debit: 1680.00, credit: 0, balance: 897220.80 },
+      { id: 'e-7', date: '2025-07-08', month: '', day: '8', year: '', reference: '0171411 VAT', particulars: 'payment - rental / garbage', folio: '', debit: 0, credit: 897220.80, balance: 0 },
+      { id: 'e-8', date: '2025-07-25', month: '', day: '25', year: '', reference: 'SA07-25-0485', particulars: 'Electric consumption - June 8 - July 7, 2025', folio: 'pd/', debit: 21836.13, credit: 0, balance: 21836.13 },
+      { id: 'e-9', date: '2025-07-25', month: '', day: '', year: '', reference: '-0486', particulars: 'Water - June 8 - July 7, 2025', folio: 'pd', debit: 17340.02, credit: 0, balance: 39176.15, dateMarker: '8/8/25' },
+      { id: 'e-10', date: '2025-08-01', month: 'Aug.', day: '1', year: '', reference: 'SA08-25-0505', particulars: 'rental - August 2025', folio: 'pd/', debit: 895540.80, credit: 0, balance: 934716.95 },
+      { id: 'e-11', date: '2025-08-01', month: '', day: '', year: '', reference: '-0506', particulars: 'garbage - August 2025', folio: 'pd', debit: 1680.00, credit: 0, balance: 936396.95 },
+      { id: 'e-12', date: '2025-08-05', month: '', day: '5', year: '', reference: '0171456 VAT', particulars: 'payment - rental / garbage 08/25', folio: '✓', debit: 0, credit: 897220.80, balance: 39176.15 },
+      { id: 'e-13', date: '2025-08-05', month: '', day: '✓', year: '', reference: '6264343 NV', particulars: 'payment - electric / water 6/8-7/7/25', folio: '', debit: 0, credit: 39176.15, balance: 0 },
+      { id: 'e-14', date: '2025-08-20', month: '', day: '20', year: '', reference: 'SA 08 25 0560', particulars: 'Electric Consumption - Jul. 8 - Aug. 7, 2025', folio: 'pd/', debit: 14584.68, credit: 0, balance: 14584.68 },
+      { id: 'e-15', date: '2025-08-20', month: '', day: '', year: '', reference: '-0561', particulars: 'Water consumption - Jul. 8 - Aug. 7, 2025', folio: 'pd', debit: 10404.01, credit: 0, balance: 24988.69 },
+      { id: 'e-16', date: '2025-08-27', month: '', day: '27', year: '', reference: '6264383 NV', particulars: 'payment - electric / water 7/8-8/7/25', folio: '', debit: 0, credit: 24988.69, balance: 0 },
+      { id: 'e-17', date: '2025-09-01', month: 'Sept.', day: '1', year: '', reference: 'SA09-25-0586', particulars: 'rental - September 2025', folio: 'pd/', debit: 893540.80, credit: 0, balance: 893540.80 },
+      { id: 'e-18', date: '2025-09-01', month: '', day: '', year: '', reference: '-0587', particulars: 'garbage - September 2025', folio: 'pd', debit: 1680.00, credit: 0, balance: 897220.80 },
+      { id: 'e-19', date: '2025-09-05', month: '', day: '5', year: '', reference: '0171527', particulars: 'payment - rental / garbage 09/25', folio: '', debit: 0, credit: 897220.80, balance: 0 }
+    ]
+  },
+  {
+    id: 'SL-101',
+    accountSymbol: '101',
+    accountOf: 'LSERV CORPORATION',
+    address: '21st Floor Petron Megaplaza, Sen Gil Puyat Ave, Makati City',
+    sheetNo: '01',
+    period: 'Jan. 1, 2026 to Dec. 31, 2026',
+    memo: [
+      'Janitorial Services Contract',
+      'Contract Ref: COS-2026-08',
+      'Monthly Rate: 1,250,000.00'
+    ],
+    entries: [
+      { id: 'l-1', date: '2026-08-01', month: 'Aug.', day: '1', year: '2026', reference: 'DV-08-0001-26', particulars: 'Payment of Stage Setup & Sound Engineering', folio: 'pd', debit: 1250000.00, credit: 0, balance: 1250000.00 },
+      { id: 'l-2', date: '2026-08-01', month: '', day: '1', year: '', reference: 'OR-998231', particulars: 'Payment Received / Disbursement Release', folio: '✓', debit: 0, credit: 1250000.00, balance: 0.00 }
+    ]
+  }
+];
+
+

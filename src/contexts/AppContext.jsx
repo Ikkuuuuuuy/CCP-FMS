@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { SEED_ALLOTMENTS, MOCK_USERS, MOCK_BURS, MOCK_DVS, MOCK_JOURNAL_ENTRIES, MOCK_AUDIT_LOGS } from '../data/seedData';
+import { SEED_ALLOTMENTS, MOCK_USERS, MOCK_BURS, MOCK_DVS, MOCK_JOURNAL_ENTRIES, MOCK_AUDIT_LOGS, MOCK_SUBSIDIARY_LEDGERS } from '../data/seedData';
 import {
   generateBURNumber, generateDVNumber, generateJENumber,
   generateAuditLogId, getCurrentYear, getCurrentMonth, getTodayISO,
@@ -27,6 +27,9 @@ const getInitialState = () => {
           parsed.dvs = MOCK_DVS;
           parsed.journalEntries = MOCK_JOURNAL_ENTRIES;
         }
+        if (!parsed.subsidiaryLedgers || parsed.subsidiaryLedgers.length === 0) {
+          parsed.subsidiaryLedgers = MOCK_SUBSIDIARY_LEDGERS;
+        }
         return parsed;
       }
     }
@@ -37,6 +40,7 @@ const getInitialState = () => {
     burs: MOCK_BURS,
     dvs: MOCK_DVS,
     journalEntries: MOCK_JOURNAL_ENTRIES,
+    subsidiaryLedgers: MOCK_SUBSIDIARY_LEDGERS,
     auditLog: MOCK_AUDIT_LOGS,
     allotments: JSON.parse(JSON.stringify(SEED_ALLOTMENTS)),
     sequences: { bur: { 2026: { 8: 5 } }, dv: 4, je: 3, audit: 9 },
@@ -571,6 +575,57 @@ function appReducer(state, action) {
         journalEntries: [...state.journalEntries, journalEntry],
         auditLog: [...state.auditLog, entry],
         sequences: { ...state.sequences, je: jeSeq, audit: newSeq },
+      };
+    }
+
+    // =========================================================================
+    // SUBSIDIARY LEDGER ENTRY ADD
+    // =========================================================================
+    case 'SUBSIDIARY_ENTRY_ADD': {
+      const { ledgerId, entryData } = action.payload;
+      const ledgers = state.subsidiaryLedgers || MOCK_SUBSIDIARY_LEDGERS;
+      const target = ledgers.find((l) => l.id === ledgerId);
+      if (!target) throw new Error('Subsidiary Ledger not found');
+
+      const debit = parseFloat(entryData.debit || 0);
+      const credit = parseFloat(entryData.credit || 0);
+      const lastEntry = target.entries[target.entries.length - 1];
+      const prevBal = lastEntry ? lastEntry.balance : 0;
+      const newBal = prevBal + debit - credit;
+
+      const newEntry = {
+        id: `e-${Date.now()}`,
+        date: entryData.date || getTodayISO(),
+        month: entryData.month || '',
+        day: entryData.day || '',
+        year: entryData.year || '',
+        reference: entryData.reference || '',
+        particulars: entryData.particulars || '',
+        folio: entryData.folio || '',
+        debit,
+        credit,
+        balance: Math.max(0, newBal),
+        dateMarker: entryData.dateMarker || ''
+      };
+
+      const updatedLedger = {
+        ...target,
+        entries: [...target.entries, newEntry]
+      };
+
+      const updatedLedgers = ledgers.map((l) => (l.id === ledgerId ? updatedLedger : l));
+
+      const { entry: auditEntry, newSeq } = createAuditEntry(state, {
+        actorId: actor.id, actorName: actor.name,
+        module: 'LEDGER', actionType: 'CREATE',
+        documentRef: `${target.accountOf} (${target.accountSymbol})`, newData: newEntry,
+      });
+
+      return {
+        ...state,
+        subsidiaryLedgers: updatedLedgers,
+        auditLog: [...state.auditLog, auditEntry],
+        sequences: { ...state.sequences, audit: newSeq },
       };
     }
 

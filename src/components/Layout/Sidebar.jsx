@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, BarChart2, FileText, CreditCard, BookOpen,
-  ClipboardList, Wallet, History, Users, LogOut, ChevronDown, User
+  ClipboardList, Wallet, History, Users, LogOut, ChevronDown, User, UserCheck
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { MOCK_USERS } from '../../data/seedData';
@@ -64,10 +64,10 @@ const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard Analytics', icon: LayoutDashboard },
   { id: 'bur', label: 'Budget Utilization Requests', icon: FileText },
   { id: 'dv', label: 'Disbursement Vouchers', icon: CreditCard },
-  { id: 'work-assignments', label: 'Work Assignments', icon: Users },
   { id: 'ledger', label: 'Credit & Collections', icon: BookOpen },
   { id: 'reports', label: 'Financial Reports', icon: BarChart2 },
   { id: 'audit', label: 'Audit Logs', icon: ClipboardList },
+  { id: 'work-assignments', label: 'Work Assignments', icon: UserCheck },
   { id: 'transactions', label: 'Transaction Logs', icon: History },
   { id: 'users', label: 'User Management', icon: Users, adminOnly: true },
 ];

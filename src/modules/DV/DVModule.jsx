@@ -152,7 +152,7 @@ export default function DVModule() {
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
-            {DV_STATUS_OPTIONS.map((opt) => (
+            {STATUS_FILTERS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
