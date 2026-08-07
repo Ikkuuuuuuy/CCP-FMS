@@ -536,18 +536,41 @@ export default function WorkAssignmentModule() {
                   backgroundColor: '#F8FAFC',
                   borderTop: '1px solid #E2E8F0',
                   display: 'flex',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
+                  gap: '12px',
                 }}
               >
-                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#64748B',
+                    fontWeight: 600,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                  }}
+                  title={user.email}
+                >
                   {user.email}
                 </span>
                 <button
                   onClick={() => handleOpenAssignModal(user)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 800, cursor: 'pointer',
-                    backgroundColor: '#FFFFFF', color: '#8C1515', border: '1px solid #D4AF37', boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    backgroundColor: '#FFFFFF',
+                    color: '#8C1515',
+                    border: '1px solid #D4AF37',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    flexShrink: 0,
                   }}
                 >
                   <Plus size={13} />
