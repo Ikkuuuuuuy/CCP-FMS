@@ -4,7 +4,7 @@ import {
   PieChart, Pie, Cell
 } from 'recharts';
 import {
-  ChevronDown, TrendingUp, BookOpen, ArrowUpRight, CheckCircle
+  ChevronDown, TrendingUp, BookOpen, ArrowUpRight
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { formatCurrency } from '../../utils/formatters';
@@ -193,13 +193,6 @@ export default function Dashboard({ onNavigate }) {
             </select>
             <ChevronDown size={14} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
           </div>
-
-          <span style={{
-            fontSize: '11.5px', fontWeight: 700, color: '#047857', backgroundColor: '#ECFDF5',
-            padding: '5px 12px', borderRadius: '16px', border: '1px solid #A7F3D0', display: 'flex', alignItems: 'center', gap: '6px'
-          }}>
-            <CheckCircle size={13} /> Live Ledger Forecasting Active
-          </span>
         </div>
       </div>
 
@@ -230,9 +223,7 @@ export default function Dashboard({ onNavigate }) {
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#047857', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <TrendingUp size={14} /> Projected Income (Ledger)
             </div>
-            <span style={{ fontSize: '10px', fontWeight: 700, color: '#065F46', backgroundColor: '#D1FAE5', padding: '2px 6px', borderRadius: '4px' }}>
-              Auto-Populated
-            </span>
+            <div style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>Annual Forecast</div>
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#059669', letterSpacing: '-0.02em', marginBottom: '2px' }}>
             {formatCurrency(ledgerForecast.totalAnnualProjected)}
