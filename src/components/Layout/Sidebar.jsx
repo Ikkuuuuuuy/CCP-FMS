@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, BarChart2, FileText, CreditCard, BookOpen,
-  ClipboardList, Wallet, History, Users, LogOut, ChevronDown, User, UserCheck
+  ClipboardList, History, Users, LogOut, ChevronDown, User, UserCheck
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
-import { MOCK_USERS } from '../../data/seedData';
 
 // Authentic Official Cultural Center of the Philippines (CCP) Emblem Processor
 function CCPOfficialEmblem({ size = 36 }) {
@@ -60,27 +59,61 @@ function CCPOfficialEmblem({ size = 36 }) {
   );
 }
 
-const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard Analytics', icon: LayoutDashboard },
-  { id: 'bur', label: 'Budget Utilization Requests', icon: FileText },
-  { id: 'dv', label: 'Disbursement Vouchers', icon: CreditCard },
-  { id: 'ledger', label: 'Credit & Collections', icon: BookOpen },
-  { id: 'reports', label: 'Financial Reports', icon: BarChart2 },
-  { id: 'audit', label: 'Audit Logs', icon: ClipboardList },
-  { id: 'work-assignments', label: 'Work Assignments', icon: UserCheck },
-  { id: 'transactions', label: 'Transaction Logs', icon: History },
-  { id: 'users', label: 'User Management', icon: Users, adminOnly: true },
+// Categorized Navigation Sections matching modern sidebar design
+const NAV_SECTIONS = [
+  {
+    title: 'Main',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'bur', label: 'Budget Requests (BUR)', icon: FileText, badgeKey: 'bur' },
+      { id: 'dv', label: 'Disbursement Vouchers', icon: CreditCard, badgeKey: 'dv' },
+    ]
+  },
+  {
+    title: 'Ledgers & Processing',
+    items: [
+      { id: 'ledger', label: 'Credit & Collections', icon: BookOpen, badgeKey: 'ledger' },
+      { id: 'work-assignments', label: 'Work Assignments', icon: UserCheck },
+    ]
+  },
+  {
+    title: 'Reports & Logs',
+    items: [
+      { id: 'reports', label: 'Financial Reports', icon: BarChart2 },
+      { id: 'audit', label: 'Audit Logs', icon: ClipboardList },
+      { id: 'transactions', label: 'Transaction Logs', icon: History },
+    ]
+  },
+  {
+    title: 'User Management',
+    items: [
+      { id: 'users', label: 'Users & Roles', icon: Users, adminOnly: true },
+      { id: 'account', label: 'Account Overview', icon: User },
+    ]
+  }
 ];
 
 export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMobile }) {
   const { state, dispatch } = useApp();
-  const { currentUser } = state;
+  const { currentUser, burs = [], dvs = [], subsidiaryLedgers = [] } = state;
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
 
   const roleUpper = (currentUser?.role || '').toUpperCase();
   const isAdmin = roleUpper === 'IT/ADMIN' || roleUpper === 'ADMIN';
 
-  const visibleNavItems = NAV_ITEMS.filter(item => {
+  // Compute dynamic badge numbers
+  const pendingBURCount = burs.filter(b => b.status === 'PREPARED' || b.status === 'BOX_A_SUBMITTED').length;
+  const pendingDVCount = dvs.filter(d => d.status === 'PREPARED' || d.status === 'SUBMITTED' || d.status === 'ACCOUNTING_VERIFIED').length;
+  const activeLedgersCount = subsidiaryLedgers.length;
+
+  const getBadgeCount = (badgeKey) => {
+    if (badgeKey === 'bur') return pendingBURCount > 0 ? pendingBURCount : null;
+    if (badgeKey === 'dv') return pendingDVCount > 0 ? pendingDVCount : null;
+    if (badgeKey === 'ledger') return activeLedgersCount > 0 ? activeLedgersCount : null;
+    return null;
+  };
+
+  const isItemVisible = (item) => {
     if (isAdmin) return true;
     if (item.adminOnly) return false;
     
@@ -89,7 +122,7 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
     
     switch (item.id) {
       case 'dashboard':
-        return roleUpper !== 'BOOKKEEPER'; // Everyone except Bookkeeper
+        return roleUpper !== 'BOOKKEEPER';
       case 'bur':
         return perms.includes('bur.view');
       case 'dv':
@@ -102,10 +135,14 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
         return perms.includes('audit.view');
       case 'transactions':
         return perms.includes('logs.view') || roleUpper === 'DIVISION CHIEF';
+      case 'work-assignments':
+        return true;
+      case 'account':
+        return true;
       default:
         return false;
     }
-  });
+  };
 
   return (
     <>
@@ -128,8 +165,8 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
         position: 'fixed',
         top: 0,
         left: 0,
-        backgroundColor: '#141414', // Sleek Black Sidebar Body
-        borderRight: '1px solid rgba(191,160,70,0.2)',
+        backgroundColor: '#0F172A', // Modern Dark Navy Slate Sidebar
+        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -171,35 +208,103 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
           </div>
         </div>
 
-        {/* === NAVIGATION LIST (Black Background) === */}
-        <nav style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {visibleNavItems.map(({ id, label, icon: Icon }) => {
-            const isActive = activePage === id;
+        {/* === CATEGORIZED NAVIGATION LIST === */}
+        <nav style={{ padding: '12px 10px 24px 10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {NAV_SECTIONS.map((section, secIdx) => {
+            const visibleItems = section.items.filter(isItemVisible);
+            if (visibleItems.length === 0) return null;
+
             return (
-              <button
-                key={id}
-                onClick={() => onNavigate(id)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '9px 12px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: isActive ? 700 : 500,
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  border: isActive ? '1px solid rgba(191,160,70,0.5)' : '1px solid transparent',
-                  backgroundColor: isActive ? 'rgba(191,160,70,0.15)' : 'transparent',
-                  color: isActive ? '#E5C158' : '#D1D5DB',
-                  boxShadow: isActive ? '0 2px 4px rgba(0,0,0,0.2)' : 'none',
-                  transition: 'all 150ms ease',
-                }}
-              >
-                <Icon size={16} style={{ color: isActive ? '#E5C158' : '#9CA3AF', flexShrink: 0 }} />
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-              </button>
+              <div key={section.title} style={{ marginTop: secIdx > 0 ? '12px' : '4px' }}>
+                {/* Section Header Title */}
+                <div style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: '#64748B', // Soft Slate Category Title
+                  padding: '6px 12px',
+                  letterSpacing: '0.03em',
+                  textTransform: 'none',
+                  userSelect: 'none'
+                }}>
+                  {section.title}
+                </div>
+
+                {/* Section Items */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '2px' }}>
+                  {visibleItems.map(({ id, label, icon: Icon, badgeKey }) => {
+                    const isActive = activePage === id;
+                    const badgeCount = badgeKey ? getBadgeCount(badgeKey) : null;
+
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => {
+                          onNavigate(id);
+                          if (onCloseMobile) onCloseMobile();
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '9px 12px',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: isActive ? 700 : 500,
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: isActive ? '#1E293B' : 'transparent', // Solid active highlight container
+                          color: isActive ? '#FFFFFF' : '#94A3B8',
+                          boxShadow: isActive ? '0 2px 6px rgba(0,0,0,0.25)' : 'none',
+                          transition: 'all 150ms ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                            e.currentTarget.style.color = '#F1F5F9';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = '#94A3B8';
+                          }
+                        }}
+                      >
+                        <Icon
+                          size={17}
+                          style={{
+                            color: isActive ? '#D4AF37' : '#64748B',
+                            flexShrink: 0,
+                            transition: 'color 150ms ease'
+                          }}
+                        />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                          {label}
+                        </span>
+
+                        {/* Optional Numeric Badge Pill */}
+                        {badgeCount !== null && (
+                          <span style={{
+                            backgroundColor: '#FEF3C7',
+                            color: '#92400E',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            padding: '1px 7px',
+                            borderRadius: '12px',
+                            lineHeight: 1.3,
+                            flexShrink: 0,
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                          }}>
+                            {badgeCount}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </nav>
@@ -208,21 +313,10 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
       {/* === USER FOOTER WITH DROPDOWN MENU === */}
       <div style={{
         position: 'relative',
-        padding: '14px 16px',
-        borderTop: '1px solid rgba(191,160,70,0.2)',
-        backgroundColor: '#0F0F0F', // Dark Black Footer
+        padding: '12px 14px',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        backgroundColor: '#0B1120', // Sleek Footer Base
       }}>
-        {/* Subtle geometric pattern overlay */}
-        <div style={{
-          position: 'absolute', right: 0, bottom: 0, opacity: 0.12, pointerEvents: 'none'
-        }}>
-          <svg width="90" height="90" viewBox="0 0 100 100" fill="none">
-            <path d="M0 100L100 0V100H0Z" fill="#D4AF37" />
-            <path d="M20 100L100 20V100H20Z" stroke="#D4AF37" strokeWidth="2" />
-            <path d="M40 100L100 40V100H40Z" stroke="#D4AF37" strokeWidth="2" />
-          </svg>
-        </div>
-
         {/* User Card Trigger */}
         <div
           onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
@@ -233,8 +327,8 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
             justifyContent: 'space-between',
             padding: '8px 10px',
             borderRadius: '8px',
-            backgroundColor: showRoleSwitcher ? 'rgba(191,160,70,0.2)' : 'rgba(255,255,255,0.04)',
-            border: showRoleSwitcher ? '1px solid rgba(191,160,70,0.5)' : '1px solid rgba(255,255,255,0.08)',
+            backgroundColor: showRoleSwitcher ? '#1E293B' : 'rgba(255,255,255,0.03)',
+            border: showRoleSwitcher ? '1px solid rgba(212,175,55,0.5)' : '1px solid rgba(255,255,255,0.06)',
             cursor: 'pointer',
             boxSizing: 'border-box',
             transition: 'all 150ms ease'
@@ -276,7 +370,7 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
         {showRoleSwitcher && (
           <div style={{
             position: 'absolute', bottom: '100%', left: '10px', right: '10px', marginBottom: '8px',
-            backgroundColor: '#181818', border: '1px solid rgba(191,160,70,0.35)', borderRadius: '10px',
+            backgroundColor: '#1E293B', border: '1px solid rgba(212,175,55,0.35)', borderRadius: '10px',
             boxShadow: '0 12px 30px rgba(0,0,0,0.6)', overflow: 'hidden', zIndex: 120
           }}>
             {/* Account Overview Quick Action Button */}
