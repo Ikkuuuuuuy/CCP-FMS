@@ -152,15 +152,15 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {/* Official CCP Golden Logo Emblem */}
-            <CCPOfficialEmblem size={50} />
+            <CCPOfficialEmblem size={72} />
 
             <div>
               <div style={{
-                fontSize: '12px',
+                fontSize: '12.5px',
                 fontWeight: 900,
                 fontFamily: "'Playfair Display', Georgia, serif",
-                color: '#D4AF37',
-                letterSpacing: '0.03em',
+                color: '#FFFFFF',
+                letterSpacing: '0.02em',
                 textTransform: 'uppercase',
                 lineHeight: '1.25',
                 whiteSpace: 'nowrap'
@@ -246,9 +246,18 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
               width: '34px', height: '34px', borderRadius: '50%',
               background: 'linear-gradient(135deg, #BFA046, #E5C158)',
               color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 800, fontSize: '11px', flexShrink: 0
+              fontWeight: 800, fontSize: '11px', flexShrink: 0,
+              overflow: 'hidden', border: '1.5px solid rgba(212,175,55,0.6)'
             }}>
-              {currentUser?.avatar || 'JR'}
+              {currentUser?.avatarPhoto ? (
+                <img
+                  src={currentUser.avatarPhoto}
+                  alt={currentUser.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                currentUser?.avatar || 'JR'
+              )}
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: '12px', fontWeight: 700, color: '#FFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

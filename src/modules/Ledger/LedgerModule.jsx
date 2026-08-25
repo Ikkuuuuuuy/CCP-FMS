@@ -30,6 +30,18 @@ export default function LedgerModule() {
     dateMarker: '',
   });
 
+  // Modal for creating a new Customer/Tenant Account Ledger
+  const [isCreateLedgerModalOpen, setIsCreateLedgerModalOpen] = useState(false);
+  const [newLedgerForm, setNewLedgerForm] = useState({
+    accountOf: '',
+    address: 'CCP Complex, Pasay City',
+    accountSymbol: '',
+    sheetNo: '01',
+    period: 'Jan. 1, 2026 to Dec. 31, 2026',
+    memo: 'Rental 0.00\ngarbage 0.00\nTOTAL 0.00\ndue every 5th of the month',
+    initialBalance: '0',
+  });
+
   const activeLedger = useMemo(() => {
     return subsidiaryLedgers.find((l) => l.id === selectedLedgerId) || subsidiaryLedgers[0];
   }, [subsidiaryLedgers, selectedLedgerId]);
@@ -80,6 +92,42 @@ export default function LedgerModule() {
       setIsAddModalOpen(false);
       setNewEntryData({
         month: '', day: '', year: '', reference: '', particulars: '', folio: 'pd', debit: '', credit: '', dateMarker: ''
+      });
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleCreateLedgerSubmit = (e) => {
+    e.preventDefault();
+    try {
+      if (!newLedgerForm.accountOf.trim()) {
+        alert('Please enter Account / Tenant Name.');
+        return;
+      }
+      if (!newLedgerForm.accountSymbol.trim()) {
+        alert('Please enter Account Symbol.');
+        return;
+      }
+      const newId = `SL-${Date.now()}`;
+      dispatch({
+        type: 'SUBSIDIARY_LEDGER_CREATE',
+        payload: {
+          ...newLedgerForm,
+          id: newId,
+        },
+      });
+      setSelectedLedgerId(newId);
+      setIsCreateLedgerModalOpen(false);
+      // Reset form
+      setNewLedgerForm({
+        accountOf: '',
+        address: 'CCP Complex, Pasay City',
+        accountSymbol: '',
+        sheetNo: '01',
+        period: 'Jan. 1, 2026 to Dec. 31, 2026',
+        memo: 'Rental 0.00\ngarbage 0.00\nTOTAL 0.00\ndue every 5th of the month',
+        initialBalance: '0',
       });
     } catch (err) {
       alert(err.message);
@@ -209,6 +257,11 @@ export default function LedgerModule() {
                     </div>
                   </div>
                 </div>
+
+                <button className="btn btn-secondary" onClick={() => setIsCreateLedgerModalOpen(true)}>
+                  <Plus size={15} />
+                  <span>New Customer/Tenant Ledger</span>
+                </button>
 
                 <button className="btn btn-primary" onClick={() => setIsAddModalOpen(true)}>
                   <Plus size={15} />
@@ -681,6 +734,115 @@ export default function LedgerModule() {
               </button>
               <button type="submit" className="btn btn-primary">
                 Add Entry
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* MODAL: CREATE NEW CUSTOMER / TENANT SUBSIDIARY LEDGER */}
+      {isCreateLedgerModalOpen && (
+        <Modal
+          isOpen={isCreateLedgerModalOpen}
+          title="Create New Customer / Tenant Account Ledger (Form 63)"
+          onClose={() => setIsCreateLedgerModalOpen(false)}
+        >
+          <form onSubmit={handleCreateLedgerSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="form-group">
+              <label className="form-label">
+                Account of (Customer / Tenant / Entity Name) <span style={{ color: 'red' }}>*</span>
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="e.g. BALLET PHILIPPINES FOUNDATION, INC."
+                value={newLedgerForm.accountOf}
+                onChange={(e) => setNewLedgerForm({ ...newLedgerForm, accountOf: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Address / Office Location</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="e.g. 4th Floor, CCP Main Building, Pasay City"
+                value={newLedgerForm.address}
+                onChange={(e) => setNewLedgerForm({ ...newLedgerForm, address: e.target.value })}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div className="form-group">
+                <label className="form-label">
+                  Account Symbol <span style={{ color: 'red' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. 64, 102, T-05"
+                  value={newLedgerForm.accountSymbol}
+                  onChange={(e) => setNewLedgerForm({ ...newLedgerForm, accountSymbol: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Sheet No.</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="01"
+                  value={newLedgerForm.sheetNo}
+                  onChange={(e) => setNewLedgerForm({ ...newLedgerForm, sheetNo: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Initial Balance (₱)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="form-control"
+                  placeholder="0.00"
+                  value={newLedgerForm.initialBalance}
+                  onChange={(e) => setNewLedgerForm({ ...newLedgerForm, initialBalance: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Accounting Period</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="e.g. Jan. 1, 2026 to Dec. 31, 2026"
+                value={newLedgerForm.period}
+                onChange={(e) => setNewLedgerForm({ ...newLedgerForm, period: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Rental / Billing Memorandum & Rates (One line per note)</label>
+              <textarea
+                className="form-control"
+                rows={4}
+                placeholder={"Rental 500,000.00\ngarbage 1,500.00\nTOTAL 501,500.00\ndue every 5th of the month"}
+                value={newLedgerForm.memo}
+                onChange={(e) => setNewLedgerForm({ ...newLedgerForm, memo: e.target.value })}
+              />
+              <span style={{ fontSize: 11, color: '#6B7280', marginTop: 4, display: 'block' }}>
+                These rates appear in the left memo stamp box on CCP Form 63.
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 12 }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setIsCreateLedgerModalOpen(false)}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Create Account Ledger
               </button>
             </div>
           </form>

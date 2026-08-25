@@ -105,24 +105,166 @@ export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel,
       <form id="dv-form" onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           <div>
-            {/* Payee Info */}
+            {/* 1. Obligated BUR Link Selection (Primary Step) */}
+            <div className="card mb-4" style={{ border: '2px solid #D4AF37' }}>
+              <div className="card-header" style={{ background: '#FFFDF5' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div className="card-title" style={{ color: '#92400E', fontWeight: 800 }}>
+                    1. Select Obligated BUR Reference <span className="required">*</span>
+                  </div>
+                  {selectedBUR && (
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, background: '#ECFDF5', color: '#065F46',
+                      padding: '2px 8px', borderRadius: 12, border: '1px solid #A7F3D0'
+                    }}>
+                      ✓ Auto-Filled from {selectedBUR.burNo}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="card-body">
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ fontWeight: 700 }}>
+                    Linked BUR No. (1 BUR to 1 DV Rule)
+                  </label>
+                  <select
+                    className="form-control"
+                    style={{ fontSize: 13, fontWeight: 600, padding: '8px 12px' }}
+                    value={form.burRef}
+                    onChange={(e) => {
+                      const refNo = e.target.value;
+                      const foundBUR = obligatedBURs.find((b) => b.burNo === refNo || b.id === refNo);
+                      if (foundBUR) {
+                        setForm((f) => ({
+                          ...f,
+                          burRef: foundBUR.burNo,
+                          payeeName: foundBUR.payeeName || f.payeeName,
+                          payeeTIN: foundBUR.payeeTIN || f.payeeTIN || '123-456-789-000',
+                          address: foundBUR.address || f.address || (foundBUR.office ? `${foundBUR.office}, CCP Complex, Pasay City` : f.address),
+                          particulars: foundBUR.particulars || foundBUR.description || foundBUR.purpose || f.particulars,
+                          expenseAccountCode: foundBUR.accountCode || f.expenseAccountCode,
+                          grossClaim: foundBUR.amount || f.grossClaim,
+                        }));
+                      } else {
+                        setForm((f) => ({ ...f, burRef: refNo }));
+                      }
+                    }}
+                  >
+                    <option value="">— Select an Obligated BUR to Auto-Fill DV —</option>
+                    {obligatedBURs.map((b) => {
+                      const existingDV = (allDVs || []).find((d) => (d.burRef === b.burNo || d.burId === b.id) && d.id !== initialData?.id);
+                      const isLinked = !!existingDV;
+                      return (
+                        <option key={b.id} value={b.burNo} disabled={isLinked}>
+                          {b.burNo} · {b.payeeName || b.office} · {formatCurrency(b.amount)}
+                          {isLinked ? ` [Already Linked to ${existingDV.dvNo}]` : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <div className="form-hint" style={{ color: '#B45309', fontWeight: 500, marginTop: 6 }}>
+                    💡 Selecting an obligated BUR automatically retrieves payee details, TIN, address, obligated amount, and particulars.
+                  </div>
+                </div>
+
+                {selectedBUR && (
+                  <div style={{
+                    marginTop: 12, padding: 12, background: '#ECFDF5', border: '1px solid #A7F3D0',
+                    borderRadius: 8, fontSize: 12, color: '#065F46', lineHeight: 1.5,
+                  }}>
+                    <div style={{ fontWeight: 700, marginBottom: 4 }}>✓ Linked to Approved BUR: {selectedBUR.burNo}</div>
+                    <div>Payee: <strong>{selectedBUR.payeeName}</strong></div>
+                    <div>Office: {selectedBUR.office || selectedBUR.responsibilityCenter} · Allotment: {selectedBUR.allotmentClass}</div>
+                    <div>Obligated Budget: <strong>{formatCurrency(selectedBUR.amount)}</strong></div>
+                  </div>
+                )}
+
+                <div className="form-group" style={{ marginTop: 14, marginBottom: 0 }}>
+                  <label className="form-label">Expense Account</label>
+                  <select className="form-control" value={form.expenseAccountCode} onChange={set('expenseAccountCode')}>
+                    {expenseAccounts.map((a) => (
+                      <option key={a.code} value={a.code}>{a.code} — {a.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Payee Information (Auto-populated from BUR & Blocked) */}
             <div className="card mb-4">
-              <div className="card-header"><div className="card-title">Payee Information</div></div>
+              <div className="card-header">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div className="card-title">2. Payee Information</div>
+                  {selectedBUR ? (
+                    <span style={{
+                      fontSize: 11, color: '#065F46', fontWeight: 700,
+                      background: '#ECFDF5', padding: '2px 8px', borderRadius: 6, border: '1px solid #A7F3D0'
+                    }}>
+                      🔒 Auto-populated from {selectedBUR.burNo}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 11, color: '#6B7280', fontWeight: 500 }}>
+                      Auto-filled via Step 1
+                    </span>
+                  )}
+                </div>
+              </div>
               <div className="card-body">
                 <div className="form-group">
-                  <label className="form-label">Payee Name <span className="required">*</span></label>
-                  <input type="text" required className="form-control" placeholder="Full name or business name"
-                    value={form.payeeName} onChange={set('payeeName')} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <label className="form-label" style={{ marginBottom: 0 }}>Payee Name <span className="required">*</span></label>
+                    {form.burRef && <span style={{ fontSize: 10, color: '#4B5563', fontWeight: 600 }}>🔒 Locked</span>}
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    readOnly
+                    className="form-control"
+                    placeholder={form.burRef ? 'Payee name' : 'Select an Obligated BUR in Step 1 to auto-populate...'}
+                    value={form.payeeName}
+                    style={{
+                      backgroundColor: form.burRef ? '#F9FAFB' : '#F3F4F6',
+                      color: form.burRef ? '#111827' : '#6B7280',
+                      cursor: 'not-allowed',
+                      fontWeight: 600,
+                      border: '1px solid #D1D5DB'
+                    }}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Payee TIN <span className="required">*</span></label>
-                  <input type="text" required className="form-control" placeholder="000-000-000-000"
-                    value={form.payeeTIN} onChange={set('payeeTIN')} />
+                  <input
+                    type="text"
+                    required
+                    className="form-control"
+                    placeholder="000-000-000-000"
+                    value={form.payeeTIN}
+                    onChange={set('payeeTIN')}
+                  />
+                  <div className="form-hint" style={{ fontSize: 11, color: '#6B7280' }}>
+                    Enter the Payee's BIR Taxpayer Identification Number for tax withholdings.
+                  </div>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Address <span className="required">*</span></label>
-                  <input type="text" required className="form-control" placeholder="Full address"
-                    value={form.address} onChange={set('address')} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <label className="form-label" style={{ marginBottom: 0 }}>Address <span className="required">*</span></label>
+                    {form.burRef && <span style={{ fontSize: 10, color: '#4B5563', fontWeight: 600 }}>🔒 Locked</span>}
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    readOnly
+                    className="form-control"
+                    placeholder={form.burRef ? 'Full address' : 'Select an Obligated BUR in Step 1 to auto-populate...'}
+                    value={form.address}
+                    style={{
+                      backgroundColor: form.burRef ? '#F9FAFB' : '#F3F4F6',
+                      color: form.burRef ? '#111827' : '#6B7280',
+                      cursor: 'not-allowed',
+                      fontWeight: 600,
+                      border: '1px solid #D1D5DB'
+                    }}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Mode of Payment <span className="required">*</span></label>
@@ -148,65 +290,6 @@ export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel,
                       <option key={u.id} value={u.id}>
                         {u.name} ({u.roleLabel})
                       </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* BUR Link */}
-            <div className="card">
-              <div className="card-header"><div className="card-title">BUR Reference (Obligation Link - 1:1)</div></div>
-              <div className="card-body">
-                <div className="form-group">
-                  <label className="form-label">Linked BUR No. (1 BUR to 1 DV Rule)</label>
-                  <select className="form-control" value={form.burRef} onChange={(e) => {
-                    const refNo = e.target.value;
-                    const foundBUR = obligatedBURs.find((b) => b.burNo === refNo || b.id === refNo);
-                    if (foundBUR) {
-                      setForm((f) => ({
-                        ...f,
-                        burRef: foundBUR.burNo,
-                        payeeName: foundBUR.payeeName || f.payeeName,
-                        address: foundBUR.address || f.address,
-                        particulars: foundBUR.particulars || foundBUR.description || f.particulars,
-                        expenseAccountCode: foundBUR.accountCode || f.expenseAccountCode,
-                        grossClaim: foundBUR.amount || f.grossClaim,
-                      }));
-                    } else {
-                      setForm((f) => ({ ...f, burRef: refNo }));
-                    }
-                  }}>
-                    <option value="">— Select an Obligated BUR to link —</option>
-                    {obligatedBURs.map((b) => {
-                      const existingDV = (allDVs || []).find((d) => (d.burRef === b.burNo || d.burId === b.id) && d.id !== initialData?.id);
-                      const isLinked = !!existingDV;
-                      return (
-                        <option key={b.id} value={b.burNo} disabled={isLinked}>
-                          {b.burNo} · {b.payeeName || b.office} · {formatCurrency(b.amount)}
-                          {isLinked ? ` [Already Linked to ${existingDV.dvNo}]` : ''}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <div className="form-hint">Selecting an obligated BUR auto-fills payee details, particulars, and account code.</div>
-                </div>
-                {selectedBUR && (
-                  <div style={{
-                    padding: 12, background: '#ECFDF5', border: '1px solid #A7F3D0',
-                    borderRadius: 8, fontSize: 12, color: '#065F46',
-                  }}>
-                    <div style={{ fontWeight: 700, marginBottom: 4 }}>✓ Linked to {selectedBUR.burNo}</div>
-                    <div>Payee: <strong>{selectedBUR.payeeName}</strong></div>
-                    <div>Office: {selectedBUR.office || selectedBUR.responsibilityCenter} · Allotment: {selectedBUR.allotmentClass}</div>
-                    <div style={{ marginTop: 4 }}>Total Obligated Budget: <strong>{formatCurrency(selectedBUR.amount)}</strong></div>
-                  </div>
-                )}
-                <div className="form-group" style={{ marginTop: 12, marginBottom: 0 }}>
-                  <label className="form-label">Expense Account</label>
-                  <select className="form-control" value={form.expenseAccountCode} onChange={set('expenseAccountCode')}>
-                    {expenseAccounts.map((a) => (
-                      <option key={a.code} value={a.code}>{a.code} — {a.name}</option>
                     ))}
                   </select>
                 </div>

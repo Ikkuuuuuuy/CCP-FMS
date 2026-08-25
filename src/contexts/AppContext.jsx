@@ -629,6 +629,123 @@ function appReducer(state, action) {
       };
     }
 
+    // =========================================================================
+    // NEW CUSTOMER/TENANT SUBSIDIARY LEDGER CREATE
+    // =========================================================================
+    case 'SUBSIDIARY_LEDGER_CREATE': {
+      const { id, accountOf, address, accountSymbol, sheetNo, period, memo = [], initialBalance = 0 } = action.payload;
+      if (!accountOf || !accountSymbol) {
+        throw new Error('Account Name and Account Symbol are required.');
+      }
+      const ledgers = state.subsidiaryLedgers || MOCK_SUBSIDIARY_LEDGERS;
+      const newId = id || `SL-${Date.now()}`;
+      const initBal = parseFloat(initialBalance || 0);
+
+      const newLedger = {
+        id: newId,
+        accountSymbol: accountSymbol.trim(),
+        accountOf: accountOf.trim().toUpperCase(),
+        address: (address || 'CCP Complex, Pasay City').trim(),
+        sheetNo: sheetNo || '01',
+        period: period || `${getCurrentYear()}`,
+        memo: Array.isArray(memo) ? memo : (typeof memo === 'string' ? memo.split('\n').filter(Boolean) : []),
+        entries: [
+          {
+            id: `e-${Date.now()}-0`,
+            date: getTodayISO(),
+            month: period || `${getCurrentYear()}`,
+            year: `${getCurrentYear()}`,
+            reference: '',
+            particulars: 'Forwarded Balance',
+            folio: '',
+            debit: initBal >= 0 ? initBal : 0,
+            credit: 0,
+            balance: initBal,
+          }
+        ]
+      };
+
+      const updatedLedgers = [newLedger, ...ledgers];
+
+      const { entry: auditEntry, newSeq } = createAuditEntry(state, {
+        actorId: actor.id, actorName: actor.name,
+        module: 'LEDGER', actionType: 'CREATE',
+        documentRef: `New Subsidiary Ledger: ${newLedger.accountOf} (${newLedger.accountSymbol})`,
+        newData: newLedger,
+      });
+
+      return {
+        ...state,
+        subsidiaryLedgers: updatedLedgers,
+        auditLog: [...state.auditLog, auditEntry],
+        sequences: { ...state.sequences, audit: newSeq },
+      };
+    }
+
+    // =========================================================================
+    // USER UPDATE PROFILE & AVATAR
+    // =========================================================================
+    case 'USER_UPDATE_PROFILE': {
+      const { name, email, phone, division, avatar, avatarPhoto } = action.payload;
+      const updatedUser = {
+        ...state.currentUser,
+        ...(name !== undefined ? { name } : {}),
+        ...(email !== undefined ? { email } : {}),
+        ...(phone !== undefined ? { phone } : {}),
+        ...(division !== undefined ? { division } : {}),
+        ...(avatar !== undefined ? { avatar } : {}),
+        ...(avatarPhoto !== undefined ? { avatarPhoto } : {}),
+      };
+
+      const { entry: auditEntry, newSeq } = createAuditEntry(state, {
+        actorId: actor.id,
+        actorName: actor.name,
+        module: 'USER_MGMT',
+        actionType: 'UPDATE',
+        documentRef: `Profile updated for ${updatedUser.name} (${updatedUser.id || 'Current User'})`,
+        newData: { name, email, phone, division },
+      });
+
+      return {
+        ...state,
+        currentUser: updatedUser,
+        auditLog: [...state.auditLog, auditEntry],
+        sequences: { ...state.sequences, audit: newSeq },
+      };
+    }
+
+    // =========================================================================
+    // USER CHANGE PASSWORD
+    // =========================================================================
+    case 'USER_CHANGE_PASSWORD': {
+      const { newPassword } = action.payload;
+      if (!newPassword || newPassword.length < 6) {
+        throw new Error('New password must be at least 6 characters long.');
+      }
+
+      const updatedUser = {
+        ...state.currentUser,
+        password: newPassword,
+        passwordLastChanged: getTodayISO(),
+      };
+
+      const { entry: auditEntry, newSeq } = createAuditEntry(state, {
+        actorId: actor.id,
+        actorName: actor.name,
+        module: 'SECURITY',
+        actionType: 'UPDATE',
+        documentRef: `GovPKI Security Password changed for ${updatedUser.name}`,
+        newData: { status: 'Password changed' },
+      });
+
+      return {
+        ...state,
+        currentUser: updatedUser,
+        auditLog: [...state.auditLog, auditEntry],
+        sequences: { ...state.sequences, audit: newSeq },
+      };
+    }
+
     default:
       return state;
   }

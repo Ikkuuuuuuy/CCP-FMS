@@ -68,9 +68,9 @@ export default function DVPrintTemplate({ dv }) {
 
           {/* Right Header Info (DV No) */}
           <div style={{ width: '30%', borderLeft: '1px solid #000', padding: '10px', textAlign: 'right' }}>
-            <div style={{ fontSize: '11px', fontWeight: 'bold' }}>No.</div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold' }}>DV No.</div>
             <div style={{ fontSize: '18px', fontWeight: 'bold', letterSpacing: '1px', marginTop: '4px' }}>
-              {data.dvNo}
+              {data.dvNo ? data.dvNo.replace(/^DV-/, '') : '08-0001-26'}
             </div>
           </div>
         </div>

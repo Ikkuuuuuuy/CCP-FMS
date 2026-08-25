@@ -110,7 +110,8 @@ export default function DVModule() {
 
   return (
     <div className="page-wrapper">
-      <div className="page-header no-print">
+      <div className="no-print">
+        <div className="page-header">
         <div className="page-header-info">
           <div className="page-title">Disbursement Vouchers</div>
           <div className="page-subtitle">
@@ -295,6 +296,8 @@ export default function DVModule() {
           />
         </div>
       </Modal>
+
+      </div>
 
       <DVPrintTemplate dv={printDV || selectedDV || (dvs && dvs[0])} />
     </div>

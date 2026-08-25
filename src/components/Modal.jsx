@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 
-export default function Modal({ isOpen, onClose, title, subtitle, size = 'md', children, footer }) {
+export default function Modal({ isOpen = true, onClose, title, subtitle, size = 'md', children, footer }) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';

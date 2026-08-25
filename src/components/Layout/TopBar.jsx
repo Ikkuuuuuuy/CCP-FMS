@@ -73,33 +73,35 @@ export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
       right: 0,
       left: 'var(--sidebar-width, 256px)',
       height: 'var(--topbar-height, 90px)',
-      background: 'linear-gradient(90deg, #8C1515 0%, #A31B1B 50%, #8C1515 100%)',
-      borderBottom: '2px solid rgba(212,175,55,0.5)',
+      background: 'rgba(255, 255, 255, 0.88)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      borderBottom: '3px solid #8C1515',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '0 24px',
       zIndex: 90,
-      boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+      boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
       boxSizing: 'border-box',
       transition: 'left 0.2s ease, height 0.2s ease, padding 0.2s ease'
     }}>
-      {/* Background Subtle Heritage Grid Glow */}
+      {/* Background Subtle Heritage Accent Glow */}
       <div style={{
-        position: 'absolute', inset: 0, opacity: 0.06, pointerEvents: 'none',
-        backgroundImage: 'radial-gradient(circle at 50% 50%, #D4AF37 1px, transparent 1px)',
+        position: 'absolute', inset: 0, opacity: 0.03, pointerEvents: 'none',
+        backgroundImage: 'radial-gradient(circle at 50% 50%, #8C1515 1px, transparent 1px)',
         backgroundSize: '24px 24px'
       }} />
 
       {/* Header Left Title Section & Mobile Hamburger */}
-      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 14 }}>
         <button
           onClick={onToggleMobile}
           className="mobile-hamburger-btn"
           aria-label="Toggle navigation menu"
           style={{
-            background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(212,175,55,0.4)',
-            color: '#FFF', width: 36, height: 36, borderRadius: 8, display: 'none',
+            background: '#F3F4F6', border: '1px solid #E5E7EB',
+            color: '#111827', width: 36, height: 36, borderRadius: 8, display: 'none',
             alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
           }}
         >
@@ -107,15 +109,14 @@ export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
         </button>
 
         <h1 className="topbar-title" style={{
-          fontSize: '24px',
+          fontSize: '20px',
           fontWeight: 900,
           fontFamily: "'Playfair Display', Georgia, serif",
           letterSpacing: '0.04em',
           textTransform: 'uppercase',
           margin: 0,
-          color: '#FFFFFF',
-          textShadow: '0 2px 6px rgba(0,0,0,0.6)',
-          lineHeight: 1.15
+          color: '#0F172A',
+          lineHeight: 1.2
         }}>
           FINANCIAL MANAGEMENT SYSTEM
         </h1>
@@ -127,16 +128,17 @@ export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
         {/* Date & Live Real-Time Digital Clock Widget */}
         <div className="topbar-clock-widget" style={{
           display: 'flex', alignItems: 'center', gap: '10px',
-          backgroundColor: 'rgba(0, 0, 0, 0.25)', border: '1px solid rgba(212,175,55,0.3)',
-          borderRadius: '20px', padding: '6px 14px', color: '#FDE68A', fontSize: '11px', fontWeight: 600
+          backgroundColor: 'rgba(243, 244, 246, 0.95)', border: '1px solid #E5E7EB',
+          borderRadius: '20px', padding: '6px 14px', color: '#374151', fontSize: '11px', fontWeight: 600,
+          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Calendar size={13} style={{ color: '#D4AF37' }} />
+            <Calendar size={13} style={{ color: '#8C1515' }} />
             <span>Aug 02, 2026</span>
           </div>
-          <span style={{ width: '1px', height: '12px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#FDE68A', fontWeight: 700, fontFamily: 'monospace' }}>
-            <Clock size={13} style={{ color: '#D4AF37' }} />
+          <span style={{ width: '1px', height: '12px', backgroundColor: '#D1D5DB' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#111827', fontWeight: 700, fontFamily: 'monospace' }}>
+            <Clock size={13} style={{ color: '#D97706' }} />
             <span>{timeString}</span>
           </div>
         </div>
@@ -146,19 +148,19 @@ export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
           <button
             onClick={() => setShowNotifications(!showNotifications)}
             style={{
-              position: 'relative', backgroundColor: showNotifications ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.25)',
-              border: '1px solid rgba(212,175,55,0.35)', width: '40px', height: '40px', borderRadius: '50%',
+              position: 'relative', backgroundColor: showNotifications ? '#F3F4F6' : '#FFFFFF',
+              border: '1px solid #E5E7EB', width: '38px', height: '38px', borderRadius: '50%',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)', transition: 'all 150ms ease'
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)', transition: 'all 150ms ease'
             }}
             title="Notifications"
           >
-            <Bell size={18} style={{ color: '#FDE68A' }} />
+            <Bell size={17} style={{ color: '#4B5563' }} />
             {unreadCount > 0 && (
               <span style={{
                 position: 'absolute', top: '-1px', right: '-1px', width: '17px', height: '17px',
                 backgroundColor: '#EF4444', color: '#FFFFFF', fontWeight: 800, fontSize: '9px',
-                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #8C1515'
+                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #FFFFFF'
               }}>
                 {unreadCount}
               </span>
@@ -170,7 +172,7 @@ export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
             <div style={{
               position: 'absolute', top: '100%', right: 0, marginTop: '12px', width: '330px',
               backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px',
-              boxShadow: '0 12px 35px rgba(0,0,0,0.25)', padding: '14px 0', zIndex: 120
+              boxShadow: '0 12px 35px rgba(0,0,0,0.15)', padding: '14px 0', zIndex: 120
             }}>
               <div style={{ padding: '0 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6' }}>
                 <span style={{ fontSize: '13px', fontWeight: 800, color: '#111827' }}>Notifications</span>
@@ -213,14 +215,14 @@ export default function TopBar({ activePage, onNavigate, onToggleMobile }) {
         <button
           onClick={() => dispatch({ type: 'LOGOUT' })}
           style={{
-            backgroundColor: 'rgba(0,0,0,0.25)', border: '1px solid rgba(212,175,55,0.35)',
-            width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FDE68A',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            backgroundColor: '#FEF2F2', border: '1px solid #FECACA',
+            width: '38px', height: '38px', borderRadius: '50%', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)', transition: 'all 150ms ease'
           }}
           title="Sign Out"
         >
-          <LogOut size={18} />
+          <LogOut size={17} />
         </button>
 
       </div>

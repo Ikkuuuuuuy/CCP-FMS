@@ -124,7 +124,8 @@ export default function BURModule() {
 
   return (
     <div className="page-wrapper">
-      <div className="page-header no-print">
+      <div className="no-print">
+        <div className="page-header">
         <div className="page-header-info">
           <div className="page-title">Budget Utilization Requests</div>
           <div className="page-subtitle">
@@ -343,6 +344,8 @@ export default function BURModule() {
           <div className="form-hint">This reason will be permanently recorded in the audit trail.</div>
         </div>
       </Modal>
+
+      </div>
 
       <BURPrintTemplate bur={printBUR || selectedBUR || (burs && burs[0])} />
     </div>

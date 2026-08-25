@@ -95,7 +95,7 @@ export function generateBURNumber(year, month, sequence) {
 
 /**
  * Generate DV number
- * Format: MM-SSSS-YY (e.g., 07-0302-26)
+ * Format: MM-SSSS-YY (e.g., 08-0001-26)
  */
 export function generateDVNumber(year, month, sequence) {
   const yy = String(year).slice(-2);
