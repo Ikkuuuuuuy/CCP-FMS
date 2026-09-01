@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Info } from 'lucide-react';
+import { AlertTriangle, Info, Check } from 'lucide-react';
 import { CHART_OF_ACCOUNTS, MOCK_USERS } from '../../data/seedData';
 import { computeTaxDeductions, TAX_OPTIONS } from '../../utils/taxEngine';
 import { formatCurrency } from '../../utils/formatters';
+import Modal from '../../components/Modal';
 
 export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel, error, initialData }) {
   const [form, setForm] = useState(() => {
@@ -36,6 +37,7 @@ export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel,
     };
   });
 
+  const [showConfirm, setShowConfirm] = useState(false);
   const [taxCalc, setTaxCalc] = useState({ finalVat: 0, ewt: 0, totalDeductions: 0, netAmount: 0 });
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -57,11 +59,17 @@ export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel,
 
   const selectedBUR = obligatedBURs.find((b) => b.burNo === form.burRef || b.id === form.burRef);
   const expenseAccounts = CHART_OF_ACCOUNTS.filter((a) => a.type === 'EXPENSE');
+  const selectedAccount = expenseAccounts.find((a) => a.code === form.expenseAccountCode);
+  const selectedUser = MOCK_USERS.find((u) => u.id === form.assignedTo);
 
-  const handleSubmit = (e) => {
+  const handleOpenConfirm = (e) => {
     e.preventDefault();
     if (!form.payeeName || !form.grossClaim || parseFloat(form.grossClaim) <= 0) return;
-    const assignedUser = MOCK_USERS.find(u => u.id === form.assignedTo);
+    setShowConfirm(true);
+  };
+
+  const handleFinalSubmit = () => {
+    setShowConfirm(false);
     onSubmit({
       payeeName: form.payeeName,
       payeeTIN: form.payeeTIN,
@@ -69,10 +77,10 @@ export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel,
       modeOfPayment: form.modeOfPayment,
       status: form.status,
       assignedTo: form.assignedTo,
-      assignedToName: assignedUser ? assignedUser.name : 'Unassigned',
+      assignedToName: selectedUser ? selectedUser.name : 'Unassigned',
       burRef: form.burRef || null,
       expenseAccountCode: form.expenseAccountCode,
-      expenseAccountName: expenseAccounts.find((a) => a.code === form.expenseAccountCode)?.name,
+      expenseAccountName: selectedAccount?.name,
       grossClaim: parseFloat(form.grossClaim),
       taxTypes: form.taxTypes,
       particulars: form.particulars,
@@ -83,14 +91,16 @@ export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel,
     <div>
       <div className="page-header">
         <div className="page-header-info">
-          <div className="page-title">New Disbursement Voucher</div>
-          <div className="page-subtitle">DV No. will be auto-generated upon saving</div>
+          <div className="page-title">{initialData ? 'Edit Disbursement Voucher' : 'New Disbursement Voucher'}</div>
+          <div className="page-subtitle">
+            {initialData ? `Updating ${initialData.dvNo}` : 'DV No. will be auto-generated upon saving'}
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
           <button className="btn btn-primary" form="dv-form" type="submit"
             disabled={!form.payeeName || !form.grossClaim}>
-            Save as Draft
+            {initialData ? 'Update DV' : 'Save & Create DV'}
           </button>
         </div>
       </div>
@@ -102,7 +112,7 @@ export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel,
         </div>
       )}
 
-      <form id="dv-form" onSubmit={handleSubmit}>
+      <form id="dv-form" onSubmit={handleOpenConfirm}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           <div>
             {/* 1. Obligated BUR Link Selection (Primary Step) */}
@@ -383,6 +393,99 @@ export default function DVForm({ obligatedBURs, allDVs = [], onSubmit, onCancel,
           </div>
         </div>
       </form>
+
+      {/* CONFIRMATION MODAL BEFORE CREATING DV */}
+      <Modal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        title={initialData ? "Confirm Disbursement Voucher Update" : "Confirm Disbursement Voucher"}
+        subtitle="Please review payee, gross amount, and tax withholdings before proceeding."
+        size="md"
+        footer={
+          <>
+            <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
+              Back / Edit
+            </button>
+            <button className="btn btn-primary" onClick={handleFinalSubmit}>
+              <Check size={16} /> Confirm & Create DV
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Amount Overview Header */}
+          <div style={{
+            padding: '14px 18px',
+            backgroundColor: '#F8FAFC',
+            border: '1px solid #E2E8F0',
+            borderRadius: '8px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div>
+              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Net Amount Payable</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#059669', fontFamily: 'JetBrains Mono, monospace' }}>
+                {formatCurrency(taxCalc.netAmount || parseFloat(form.grossClaim) || 0)}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>Gross: <strong className="mono">{formatCurrency(parseFloat(form.grossClaim) || 0)}</strong></div>
+              <div style={{ fontSize: 11, color: '#DC2626', fontWeight: 600 }}>Tax Ded: <strong className="mono">({formatCurrency(taxCalc.totalDeductions)})</strong></div>
+            </div>
+          </div>
+
+          <table style={{ width: '100%', fontSize: 12.5, borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600, width: '38%' }}>Payee Name:</td>
+                <td style={{ padding: '8px 4px', fontWeight: 700, color: '#1E293B' }}>{form.payeeName}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Payee TIN:</td>
+                <td style={{ padding: '8px 4px', color: '#1E293B', fontFamily: 'monospace' }}>{form.payeeTIN || '—'}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Linked BUR Ref:</td>
+                <td style={{ padding: '8px 4px', fontWeight: 700, color: '#2563EB', fontFamily: 'monospace' }}>
+                  {form.burRef || 'None'}
+                </td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Mode of Payment:</td>
+                <td style={{ padding: '8px 4px', color: '#334155' }}>{form.modeOfPayment}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Expense Account:</td>
+                <td style={{ padding: '8px 4px', color: '#334155' }}>
+                  <span className="mono">{form.expenseAccountCode}</span> — {selectedAccount?.name || 'Expense'}
+                </td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Assigned Processor:</td>
+                <td style={{ padding: '8px 4px', color: '#1E293B' }}>👤 {selectedUser?.name || 'Unassigned'}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Initial Status:</td>
+                <td style={{ padding: '8px 4px', fontWeight: 600, color: '#D97706' }}>{form.status}</td>
+              </tr>
+              <tr>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Particulars:</td>
+                <td style={{ padding: '8px 4px', color: '#334155' }}>{form.particulars || '—'}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px',
+            backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '6px',
+            fontSize: 12, color: '#065F46'
+          }}>
+            <Info size={16} style={{ flexShrink: 0 }} />
+            <span>This voucher will be linked strictly 1-to-1 with BUR <strong>{form.burRef || 'N/A'}</strong>.</span>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

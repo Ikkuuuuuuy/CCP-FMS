@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, CheckCircle, XCircle, Eye, ChevronDown, Edit, Printer, ArrowRight } from 'lucide-react';
+import { Plus, Search, Filter, CheckCircle, XCircle, Eye, ChevronDown, Edit, Printer, ArrowRight, ArrowUpDown } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import StatusBadge from '../../components/StatusBadge';
 import Modal from '../../components/Modal';
+import Toast from '../../components/Toast';
 import BURForm from './BURForm';
 import BURDetail from './BURDetail';
 import BURPrintTemplate from '../../components/Print/BURPrintTemplate';
@@ -25,10 +26,12 @@ export default function BURModule() {
   const [printBUR, setPrintBUR] = useState(null);
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [filterOffice, setFilterOffice] = useState('ALL');
+  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' (New to Old) | 'oldest' (Old to New)
   const [searchText, setSearchText] = useState('');
   const [rejectModal, setRejectModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [error, setError] = useState('');
+  const [toast, setToast] = useState(null);
 
   const canCreate = currentUser?.permissions.includes('all') || currentUser?.permissions.includes('bur.create');
   const canCertify = currentUser?.permissions.includes('all') || currentUser?.permissions.includes('bur.certify');
@@ -45,24 +48,27 @@ export default function BURModule() {
     return matchStatus && matchOffice && matchSearch;
   });
 
+  // Sort Newest to Oldest by default
+  const sorted = [...filtered].sort((a, b) => {
+    const timeA = new Date(a.createdAt || a.id).getTime() || 0;
+    const timeB = new Date(b.createdAt || b.id).getTime() || 0;
+    if (timeA !== timeB) {
+      return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
+    }
+    return sortOrder === 'newest'
+      ? (b.burNo || '').localeCompare(a.burNo || '')
+      : (a.burNo || '').localeCompare(b.burNo || '');
+  });
+
   const handleAdvance = (burId) => {
     try {
       dispatch({ type: 'DOCUMENT_ADVANCE', payload: { burId } });
       setError('');
-    } catch (e) { setError(e.message); }
-  };
-
-  const handleSubmit = (id) => {
-    try {
-      dispatch({ type: 'BUR_SUBMIT', payload: { id } });
-      setError('');
-    } catch (e) { setError(e.message); }
-  };
-
-  const handleCertify = (id) => {
-    try {
-      dispatch({ type: 'BUR_CERTIFY', payload: { id } });
-      setError('');
+      setToast({
+        title: 'BUR Workflow Advanced',
+        message: `BUR status has been progressed successfully.`,
+        type: 'info',
+      });
     } catch (e) { setError(e.message); }
   };
 
@@ -73,6 +79,11 @@ export default function BURModule() {
       setRejectModal(null);
       setRejectReason('');
       setError('');
+      setToast({
+        title: 'BUR Rejected',
+        message: `Budget Utilization Request has been marked as REJECTED.`,
+        type: 'warning',
+      });
     } catch (e) { setError(e.message); }
   };
 
@@ -94,10 +105,21 @@ export default function BURModule() {
           initialData={selectedBUR || undefined}
           onSubmit={(data) => {
             try {
-              if (selectedBUR) {
+              const isEditing = !!selectedBUR;
+              if (isEditing) {
                 dispatch({ type: 'DOCUMENT_UPDATE', payload: { type: 'BUR', id: selectedBUR.id, data } });
+                setToast({
+                  title: 'BUR Updated Successfully!',
+                  message: `Budget Utilization Request ${selectedBUR.burNo} has been updated.`,
+                  type: 'success',
+                });
               } else {
                 dispatch({ type: 'DOCUMENT_CREATE', payload: data });
+                setToast({
+                  title: 'New BUR Created & Obligated!',
+                  message: `Budget Utilization Request for ${data.payeeName} (₱${Number(data.amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}) has been registered.`,
+                  type: 'success',
+                });
               }
               setView('list');
               setSelectedBUR(null);
@@ -124,6 +146,15 @@ export default function BURModule() {
 
   return (
     <div className="page-wrapper">
+      {/* Success / Info Toast Notification Pop-up */}
+      <Toast
+        show={!!toast}
+        onClose={() => setToast(null)}
+        title={toast?.title}
+        message={toast?.message}
+        type={toast?.type || 'success'}
+      />
+
       <div className="no-print">
         <div className="page-header">
         <div className="page-header-info">
@@ -194,6 +225,21 @@ export default function BURModule() {
             ))}
           </select>
         </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+            Sort:
+          </label>
+          <select
+            className="form-control"
+            style={{ width: 175, padding: '6px 10px', fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: 'pointer' }}
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+          >
+            <option value="newest">Newest First (New to Old)</option>
+            <option value="oldest">Oldest First (Old to New)</option>
+          </select>
+        </div>
       </div>
 
       {/* Data Grid */}
@@ -214,7 +260,7 @@ export default function BURModule() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {sorted.length === 0 ? (
               <tr>
                 <td colSpan={10}>
                   <div className="grid-empty">
@@ -227,7 +273,7 @@ export default function BURModule() {
                 </td>
               </tr>
             ) : (
-              filtered.map((bur) => {
+              sorted.map((bur) => {
                 const disbursed = state.dvs
                   .filter(d => (d.burRef === bur.burNo || d.burRef === bur.id) && d.status === 'PAID')
                   .reduce((s, d) => s + (d.grossClaim || 0), 0);
@@ -297,14 +343,14 @@ export default function BURModule() {
               })
             )}
           </tbody>
-          {filtered.length > 0 && (
+          {sorted.length > 0 && (
             <tfoot>
               <tr>
                 <td colSpan={4} className="text-right" style={{ color: '#6B7280', fontWeight: 400 }}>
-                  Total ({filtered.length} BURs)
+                  Total ({sorted.length} BURs)
                 </td>
                 <td className="text-right mono" style={{ fontWeight: 800 }}>
-                  {formatCurrency(filtered.reduce((s, b) => s + b.amount, 0))}
+                  {formatCurrency(sorted.reduce((s, b) => s + b.amount, 0))}
                 </td>
                 <td colSpan={4} />
               </tr>

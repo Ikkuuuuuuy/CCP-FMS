@@ -3,6 +3,7 @@ import { Plus, Search, CheckCircle, XCircle, Eye, ArrowRight, Send, Edit, Printe
 import { useApp } from '../../contexts/AppContext';
 import StatusBadge from '../../components/StatusBadge';
 import Modal from '../../components/Modal';
+import Toast from '../../components/Toast';
 import DVForm from './DVForm';
 import DVDetail from './DVDetail';
 import DVPrintTemplate from '../../components/Print/DVPrintTemplate';
@@ -24,10 +25,12 @@ export default function DVModule() {
   const [selectedDV, setSelectedDV] = useState(null);
   const [printDV, setPrintDV] = useState(null);
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' (New to Old) | 'oldest' (Old to New)
   const [searchText, setSearchText] = useState('');
   const [error, setError] = useState('');
   const [rejectModal, setRejectModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [toast, setToast] = useState(null);
 
   const canCreate = !currentUser || currentUser.permissions.includes('all') || currentUser.permissions.includes('dv.create') || currentUser.permissions.includes('bur.create') || currentUser.role === 'IT/ADMIN' || currentUser.role === 'Budget Officer';
   const obligatedBURs = burs.filter((b) => b.status === 'OBLIGATED');
@@ -41,6 +44,18 @@ export default function DVModule() {
     return matchStatus && matchSearch;
   });
 
+  // Sort Newest to Oldest by default
+  const sorted = [...filtered].sort((a, b) => {
+    const timeA = new Date(a.createdAt || a.id).getTime() || 0;
+    const timeB = new Date(b.createdAt || b.id).getTime() || 0;
+    if (timeA !== timeB) {
+      return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
+    }
+    return sortOrder === 'newest'
+      ? (b.dvNo || '').localeCompare(a.dvNo || '')
+      : (a.dvNo || '').localeCompare(b.dvNo || '');
+  });
+
   const handleAdvance = (id) => {
     try {
       dispatch({ type: 'DV_ADVANCE', payload: { id } });
@@ -49,6 +64,11 @@ export default function DVModule() {
         setSelectedDV(updated);
       }
       setError('');
+      setToast({
+        title: 'DV Advanced in Workflow',
+        message: 'Disbursement Voucher status was updated.',
+        type: 'info',
+      });
     } catch (e) { setError(e.message); }
   };
 
@@ -57,6 +77,11 @@ export default function DVModule() {
     try {
       dispatch({ type: 'DV_REJECT', payload: { id: rejectModal, reason: rejectReason.trim() } });
       setRejectModal(null); setRejectReason(''); setError('');
+      setToast({
+        title: 'Disbursement Voucher Rejected',
+        message: 'DV has been marked as REJECTED in the audit trail.',
+        type: 'warning',
+      });
     } catch (e) { setError(e.message); }
   };
 
@@ -79,10 +104,21 @@ export default function DVModule() {
           initialData={selectedDV || undefined}
           onSubmit={(data) => {
             try {
-              if (selectedDV) {
+              const isEditing = !!selectedDV;
+              if (isEditing) {
                 dispatch({ type: 'DOCUMENT_UPDATE', payload: { type: 'DV', id: selectedDV.id, data } });
+                setToast({
+                  title: 'Disbursement Voucher Updated!',
+                  message: `Disbursement Voucher ${selectedDV.dvNo} has been updated.`,
+                  type: 'success',
+                });
               } else {
                 dispatch({ type: 'DOCUMENT_CREATE_DV', payload: data });
+                setToast({
+                  title: 'Disbursement Voucher Created!',
+                  message: `Disbursement Voucher for ${data.payeeName} (Gross ₱${Number(data.grossClaim).toLocaleString('en-PH', { minimumFractionDigits: 2 })}) has been registered and linked to BUR ${data.burRef || 'BUR'}.`,
+                  type: 'success',
+                });
               }
               setView('list'); 
               setSelectedDV(null);
@@ -110,6 +146,15 @@ export default function DVModule() {
 
   return (
     <div className="page-wrapper">
+      {/* Toast Notification Pop-up */}
+      <Toast
+        show={!!toast}
+        onClose={() => setToast(null)}
+        title={toast?.title}
+        message={toast?.message}
+        type={toast?.type || 'success'}
+      />
+
       <div className="no-print">
         <div className="page-header">
         <div className="page-header-info">
@@ -149,7 +194,7 @@ export default function DVModule() {
           </label>
           <select
             className="form-control"
-            style={{ width: 220 }}
+            style={{ width: 220, padding: '6px 10px', fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: 'pointer' }}
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
@@ -158,6 +203,21 @@ export default function DVModule() {
                 {opt.label}
               </option>
             ))}
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+            Sort:
+          </label>
+          <select
+            className="form-control"
+            style={{ width: 175, padding: '6px 10px', fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: 'pointer' }}
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+          >
+            <option value="newest">Newest First (New to Old)</option>
+            <option value="oldest">Oldest First (Old to New)</option>
           </select>
         </div>
       </div>
@@ -179,7 +239,7 @@ export default function DVModule() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {sorted.length === 0 ? (
               <tr>
                 <td colSpan={10}>
                   <div className="grid-empty">
@@ -192,7 +252,7 @@ export default function DVModule() {
                 </td>
               </tr>
             ) : (
-              filtered.map((dv) => {
+              sorted.map((dv) => {
                 return (
                   <tr key={dv.id} onClick={() => { setSelectedDV(dv); setView('detail'); }}>
                     <td className="mono">{dv.dvNo}</td>
@@ -251,18 +311,18 @@ export default function DVModule() {
               })
             )}
           </tbody>
-          {filtered.length > 0 && (
+          {sorted.length > 0 && (
             <tfoot>
               <tr>
                 <td colSpan={5} className="text-right" style={{ color: '#6B7280', fontWeight: 400 }}>
-                  Total ({filtered.length} records)
+                  Total ({sorted.length} records)
                 </td>
-                <td className="text-right mono">{formatCurrency(filtered.reduce((s, d) => s + d.grossClaim, 0))}</td>
+                <td className="text-right mono">{formatCurrency(sorted.reduce((s, d) => s + d.grossClaim, 0))}</td>
                 <td className="text-right mono" style={{ color: '#DC2626' }}>
-                  ({formatCurrency(filtered.reduce((s, d) => s + (d.taxDeductions?.totalDeductions || 0), 0))})
+                  ({formatCurrency(sorted.reduce((s, d) => s + (d.taxDeductions?.totalDeductions || 0), 0))})
                 </td>
                 <td className="text-right mono" style={{ color: '#059669' }}>
-                  {formatCurrency(filtered.reduce((s, d) => s + (d.netAmount || d.grossClaim), 0))}
+                  {formatCurrency(sorted.reduce((s, d) => s + (d.netAmount || d.grossClaim), 0))}
                 </td>
                 <td colSpan={2} />
               </tr>

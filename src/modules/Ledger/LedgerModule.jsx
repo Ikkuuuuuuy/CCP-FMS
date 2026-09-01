@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Search, ShieldCheck, AlertTriangle, BookOpen, Printer, Plus, FileText, UserCheck, Calendar, Filter } from 'lucide-react';
+import { Search, ShieldCheck, AlertTriangle, BookOpen, Printer, Plus, FileText, UserCheck, Calendar, Filter, Check, ArrowUpDown } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { computeAccountBalances, verifyLedgerHealth } from '../../utils/ledgerEngine';
 import { formatCurrency, formatDateTime } from '../../utils/formatters';
 import { CHART_OF_ACCOUNTS } from '../../data/seedData';
 import Modal from '../../components/Modal';
+import Toast from '../../components/Toast';
 import SubsidiaryLedgerPrintTemplate from '../../components/Print/SubsidiaryLedgerPrintTemplate';
 
 export default function LedgerModule() {
@@ -15,9 +16,13 @@ export default function LedgerModule() {
   const [selectedLedgerId, setSelectedLedgerId] = useState('SL-063'); // default to Philippine Sailing Association
   const [searchText, setSearchText] = useState('');
   const [expandedJE, setExpandedJE] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [journalSortOrder, setJournalSortOrder] = useState('newest'); // 'newest' | 'oldest'
+  const [entrySortOrder, setEntrySortOrder] = useState('chronological'); // 'chronological' | 'newest'
   
   // Modal for adding a new entry
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isConfirmEntryOpen, setIsConfirmEntryOpen] = useState(false);
   const [newEntryData, setNewEntryData] = useState({
     month: '',
     day: '',
@@ -32,6 +37,7 @@ export default function LedgerModule() {
 
   // Modal for creating a new Customer/Tenant Account Ledger
   const [isCreateLedgerModalOpen, setIsCreateLedgerModalOpen] = useState(false);
+  const [isConfirmCreateLedgerOpen, setIsConfirmCreateLedgerOpen] = useState(false);
   const [newLedgerForm, setNewLedgerForm] = useState({
     accountOf: '',
     address: 'CCP Complex, Pasay City',
@@ -41,6 +47,15 @@ export default function LedgerModule() {
     memo: 'Rental 0.00\ngarbage 0.00\nTOTAL 0.00\ndue every 5th of the month',
     initialBalance: '0',
   });
+
+  // Sort subsidiary ledgers Newest to Oldest by default
+  const sortedSubsidiaryLedgers = useMemo(() => {
+    return [...subsidiaryLedgers].sort((a, b) => {
+      const idNumA = parseInt((a.id || '').replace(/\D/g, ''), 10) || 0;
+      const idNumB = parseInt((b.id || '').replace(/\D/g, ''), 10) || 0;
+      return idNumB - idNumA;
+    });
+  }, [subsidiaryLedgers]);
 
   const activeLedger = useMemo(() => {
     return subsidiaryLedgers.find((l) => l.id === selectedLedgerId) || subsidiaryLedgers[0];
@@ -66,22 +81,59 @@ export default function LedgerModule() {
     je.description.toLowerCase().includes(searchText.toLowerCase())
   );
 
+  // Sort journal entries based on sort order (Newest first by default)
+  const sortedJEs = useMemo(() => {
+    return [...filteredJEs].sort((a, b) => {
+      const timeA = new Date(a.date || a.postedAt || a.id).getTime() || 0;
+      const timeB = new Date(b.date || b.postedAt || b.id).getTime() || 0;
+      if (timeA !== timeB) {
+        return journalSortOrder === 'newest' ? timeB - timeA : timeA - timeB;
+      }
+      return journalSortOrder === 'newest'
+        ? (b.je_id || '').localeCompare(a.je_id || '')
+        : (a.je_id || '').localeCompare(b.je_id || '');
+    });
+  }, [filteredJEs, journalSortOrder]);
+
   const totalDebits = enrichedBalances.reduce((s, b) => s + b.totalDebit, 0);
   const totalCredits = enrichedBalances.reduce((s, b) => s + b.totalCredit, 0);
 
   // Subsidiary summary stats
-  const activeEntries = activeLedger?.entries || [];
-  const slTotalDebit = activeEntries.reduce((s, e) => s + (e.debit || 0), 0);
-  const slTotalCredit = activeEntries.reduce((s, e) => s + (e.credit || 0), 0);
-  const slCurrentBalance = activeEntries.length > 0 ? activeEntries[activeEntries.length - 1].balance : 0;
+  const rawEntries = activeLedger?.entries || [];
+  const slTotalDebit = rawEntries.reduce((s, e) => s + (e.debit || 0), 0);
+  const slTotalCredit = rawEntries.reduce((s, e) => s + (e.credit || 0), 0);
+  const slCurrentBalance = rawEntries.length > 0 ? rawEntries[rawEntries.length - 1].balance : 0;
+
+  // Active entries displayed according to sort order
+  const displayedEntries = useMemo(() => {
+    if (entrySortOrder === 'newest') {
+      return [...rawEntries].reverse();
+    }
+    return rawEntries;
+  }, [rawEntries, entrySortOrder]);
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleAddEntrySubmit = (e) => {
+  // 1. Add Entry submission flow (Validation -> Confirm Modal -> Execute)
+  const handleAddEntryPreSubmit = (e) => {
     e.preventDefault();
+    if (!newEntryData.reference.trim() || !newEntryData.particulars.trim()) {
+      alert('Reference No. and Particulars are required.');
+      return;
+    }
+    setIsConfirmEntryOpen(true);
+  };
+
+  const handleExecuteAddEntry = () => {
     try {
+      const debit = parseFloat(newEntryData.debit || 0);
+      const credit = parseFloat(newEntryData.credit || 0);
+      const lastEntry = rawEntries[rawEntries.length - 1];
+      const prevBal = lastEntry ? lastEntry.balance : 0;
+      const newBal = prevBal + debit - credit;
+
       dispatch({
         type: 'SUBSIDIARY_ENTRY_ADD',
         payload: {
@@ -89,26 +141,39 @@ export default function LedgerModule() {
           entryData: newEntryData,
         },
       });
+
+      setIsConfirmEntryOpen(false);
       setIsAddModalOpen(false);
       setNewEntryData({
         month: '', day: '', year: '', reference: '', particulars: '', folio: 'pd', debit: '', credit: '', dateMarker: ''
+      });
+
+      setToast({
+        title: 'Ledger Entry Added Successfully!',
+        message: `Entry "${newEntryData.reference}" posted to ${activeLedger.accountOf}. Resulting balance: ₱${Math.max(0, Math.round(newBal * 100) / 100).toLocaleString('en-PH', { minimumFractionDigits: 2 })}.`,
+        type: 'success',
       });
     } catch (err) {
       alert(err.message);
     }
   };
 
-  const handleCreateLedgerSubmit = (e) => {
+  // 2. Create Ledger submission flow (Validation -> Confirm Modal -> Execute)
+  const handleCreateLedgerPreSubmit = (e) => {
     e.preventDefault();
+    if (!newLedgerForm.accountOf.trim()) {
+      alert('Please enter Account / Tenant Name.');
+      return;
+    }
+    if (!newLedgerForm.accountSymbol.trim()) {
+      alert('Please enter Account Symbol.');
+      return;
+    }
+    setIsConfirmCreateLedgerOpen(true);
+  };
+
+  const handleExecuteCreateLedger = () => {
     try {
-      if (!newLedgerForm.accountOf.trim()) {
-        alert('Please enter Account / Tenant Name.');
-        return;
-      }
-      if (!newLedgerForm.accountSymbol.trim()) {
-        alert('Please enter Account Symbol.');
-        return;
-      }
       const newId = `SL-${Date.now()}`;
       dispatch({
         type: 'SUBSIDIARY_LEDGER_CREATE',
@@ -118,7 +183,15 @@ export default function LedgerModule() {
         },
       });
       setSelectedLedgerId(newId);
+      setIsConfirmCreateLedgerOpen(false);
       setIsCreateLedgerModalOpen(false);
+
+      setToast({
+        title: 'Customer Ledger Created!',
+        message: `New Subsidiary Ledger for "${newLedgerForm.accountOf}" (Symbol: ${newLedgerForm.accountSymbol}) initialized.`,
+        type: 'success',
+      });
+
       // Reset form
       setNewLedgerForm({
         accountOf: '',
@@ -149,6 +222,15 @@ export default function LedgerModule() {
 
   return (
     <div className="page-wrapper">
+      {/* Toast Notification Pop-up */}
+      <Toast
+        show={!!toast}
+        onClose={() => setToast(null)}
+        title={toast?.title}
+        message={toast?.message}
+        type={toast?.type || 'success'}
+      />
+
       {/* Printable template container */}
       <SubsidiaryLedgerPrintTemplate ledger={activeLedger} />
 
@@ -215,11 +297,11 @@ export default function LedgerModule() {
           {/* Account Selector & Control Bar */}
           <div className="card" style={{ padding: '16px 20px', background: '#ffffff', border: '1px solid var(--color-border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 300 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 320 }}>
                 <UserCheck size={18} style={{ color: 'var(--color-primary)' }} />
                 <div style={{ flex: 1 }}>
                   <label style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: 4 }}>
-                    Select Customer / Tenant Account Ledger:
+                    Select Customer / Tenant Account Ledger (Sorted New to Old):
                   </label>
                   <select
                     className="form-control"
@@ -227,7 +309,7 @@ export default function LedgerModule() {
                     value={selectedLedgerId}
                     onChange={(e) => setSelectedLedgerId(e.target.value)}
                   >
-                    {subsidiaryLedgers.map((l) => (
+                    {sortedSubsidiaryLedgers.map((l) => (
                       <option key={l.id} value={l.id}>
                         {l.accountOf} — (Account Symbol: {l.accountSymbol}, Sheet #{l.sheetNo})
                       </option>
@@ -236,8 +318,8 @@ export default function LedgerModule() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ display: 'flex', gap: 24, padding: '8px 16px', background: '#F9FAFB', borderRadius: 8, border: '1px solid #E5E7EB' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 20, padding: '8px 16px', background: '#F9FAFB', borderRadius: 8, border: '1px solid #E5E7EB' }}>
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#6B7280' }}>TOTAL DEBIT</div>
                     <div style={{ fontSize: 14, fontFamily: 'monospace', fontWeight: 700, color: '#2563EB' }}>
@@ -258,9 +340,22 @@ export default function LedgerModule() {
                   </div>
                 </div>
 
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <select
+                    className="form-control"
+                    style={{ width: 150, padding: '6px 10px', fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: 'pointer' }}
+                    value={entrySortOrder}
+                    onChange={(e) => setEntrySortOrder(e.target.value)}
+                    title="Sort entries in ledger form"
+                  >
+                    <option value="chronological">Form Standard (Chronological)</option>
+                    <option value="newest">Newest Entries First</option>
+                  </select>
+                </div>
+
                 <button className="btn btn-secondary" onClick={() => setIsCreateLedgerModalOpen(true)}>
                   <Plus size={15} />
-                  <span>New Customer/Tenant Ledger</span>
+                  <span>New Customer Ledger</span>
                 </button>
 
                 <button className="btn btn-primary" onClick={() => setIsAddModalOpen(true)}>
@@ -351,7 +446,7 @@ export default function LedgerModule() {
                     </tr>
                   </thead>
                   <tbody>
-                    {activeEntries.map((entry, index) => {
+                    {displayedEntries.map((entry, index) => {
                       const isZeroBal = entry.balance === 0 && entry.particulars !== 'Forwarded Balance';
                       return (
                         <tr key={index} style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#F9FAFB' }}>
@@ -438,9 +533,23 @@ export default function LedgerModule() {
                 onChange={(e) => setSearchText(e.target.value)}
               />
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+                Sort:
+              </label>
+              <select
+                className="form-control"
+                style={{ width: 175, padding: '6px 10px', fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: 'pointer' }}
+                value={journalSortOrder}
+                onChange={(e) => setJournalSortOrder(e.target.value)}
+              >
+                <option value="newest">Newest First (New to Old)</option>
+                <option value="oldest">Oldest First (Old to New)</option>
+              </select>
+            </div>
           </div>
 
-          {filteredJEs.length === 0 ? (
+          {sortedJEs.length === 0 ? (
             <div className="card">
               <div className="grid-empty" style={{ padding: 64 }}>
                 <div className="grid-empty-icon">📒</div>
@@ -450,7 +559,7 @@ export default function LedgerModule() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {filteredJEs.slice().reverse().map((je) => {
+              {sortedJEs.map((je) => {
                 const jeDebits = je.lines.reduce((s, l) => s + (l.debit || 0), 0);
                 const jeCredits = je.lines.reduce((s, l) => s + (l.credit || 0), 0);
                 const isExpanded = expandedJE === je.id;
@@ -617,14 +726,14 @@ export default function LedgerModule() {
         </div>
       )}
 
-      {/* MODAL: ADD LEDGER ENTRY */}
+      {/* MODAL: ADD LEDGER ENTRY FORM */}
       {isAddModalOpen && (
         <Modal
           isOpen={isAddModalOpen}
           title={`Add Entry to ${activeLedger?.accountOf}`}
           onClose={() => setIsAddModalOpen(false)}
         >
-          <form onSubmit={handleAddEntrySubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <form onSubmit={handleAddEntryPreSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               <div className="form-group">
                 <label className="form-label">Month</label>
@@ -651,7 +760,7 @@ export default function LedgerModule() {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="e.g. 2025"
+                  placeholder="e.g. 2026"
                   value={newEntryData.year}
                   onChange={(e) => setNewEntryData({ ...newEntryData, year: e.target.value })}
                 />
@@ -659,11 +768,11 @@ export default function LedgerModule() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Reference No. / Statement / OR</label>
+              <label className="form-label">Reference No. / Statement / OR <span style={{ color: 'red' }}>*</span></label>
               <input
                 type="text"
                 className="form-control"
-                placeholder="e.g. SA07-25-0485, 0171411 VAT"
+                placeholder="e.g. SA07-26-0485, 0171411 VAT"
                 value={newEntryData.reference}
                 onChange={(e) => setNewEntryData({ ...newEntryData, reference: e.target.value })}
                 required
@@ -671,11 +780,11 @@ export default function LedgerModule() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Particulars (Description)</label>
+              <label className="form-label">Particulars (Description) <span style={{ color: 'red' }}>*</span></label>
               <textarea
                 className="form-control"
                 rows={3}
-                placeholder="e.g. Electric Consumption - June 8 - July 7, 2025"
+                placeholder="e.g. Electric Consumption - June 8 - July 7, 2026"
                 value={newEntryData.particulars}
                 onChange={(e) => setNewEntryData({ ...newEntryData, particulars: e.target.value })}
                 required
@@ -722,7 +831,7 @@ export default function LedgerModule() {
               <input
                 type="text"
                 className="form-control"
-                placeholder="e.g. 7/31/25"
+                placeholder="e.g. 7/31/26"
                 value={newEntryData.dateMarker}
                 onChange={(e) => setNewEntryData({ ...newEntryData, dateMarker: e.target.value })}
               />
@@ -733,10 +842,96 @@ export default function LedgerModule() {
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
-                Add Entry
+                Review & Add Entry
               </button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {/* CONFIRMATION MODAL: ADD LEDGER ENTRY */}
+      {isConfirmEntryOpen && (
+        <Modal
+          isOpen={isConfirmEntryOpen}
+          title="Confirm Ledger Entry"
+          subtitle={`Posting new entry to ${activeLedger?.accountOf}`}
+          size="md"
+          onClose={() => setIsConfirmEntryOpen(false)}
+          footer={
+            <>
+              <button className="btn btn-secondary" onClick={() => setIsConfirmEntryOpen(false)}>
+                Back / Edit
+              </button>
+              <button className="btn btn-primary" onClick={handleExecuteAddEntry}>
+                <Check size={16} /> Confirm & Post Entry
+              </button>
+            </>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{
+              padding: '14px 18px',
+              backgroundColor: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: '8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Target Customer Account</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#0F172A' }}>
+                  {activeLedger?.accountOf}
+                </div>
+                <div style={{ fontSize: 12, color: '#B91C1C', fontWeight: 700, fontFamily: 'Courier New, monospace' }}>
+                  Symbol: {activeLedger?.accountSymbol} · Sheet #{activeLedger?.sheetNo}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>Previous Bal: {formatCurrency(slCurrentBalance)}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#059669', fontFamily: 'JetBrains Mono, monospace' }}>
+                  New Bal: {formatCurrency(Math.max(0, slCurrentBalance + (parseFloat(newEntryData.debit) || 0) - (parseFloat(newEntryData.credit) || 0)))}
+                </div>
+              </div>
+            </div>
+
+            <table style={{ width: '100%', fontSize: 12.5, borderCollapse: 'collapse' }}>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600, width: '38%' }}>Date:</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 600, color: '#1E293B' }}>
+                    {[newEntryData.month, newEntryData.day, newEntryData.year].filter(Boolean).join(' ') || 'Current Date'}
+                  </td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Reference No.:</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 700, color: '#1E40AF', fontFamily: 'monospace' }}>
+                    {newEntryData.reference}
+                  </td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Particulars:</td>
+                  <td style={{ padding: '8px 4px', color: '#334155' }}>{newEntryData.particulars}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Folio:</td>
+                  <td style={{ padding: '8px 4px', color: '#059669', fontWeight: 700 }}>{newEntryData.folio || '—'}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Debit (DR):</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 700, color: '#1E3A8A', fontFamily: 'monospace' }}>
+                    {newEntryData.debit ? formatCurrency(parseFloat(newEntryData.debit)) : '₱0.00'}
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Credit (CR):</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 700, color: '#065F46', fontFamily: 'monospace' }}>
+                    {newEntryData.credit ? formatCurrency(parseFloat(newEntryData.credit)) : '₱0.00'}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </Modal>
       )}
 
@@ -747,7 +942,7 @@ export default function LedgerModule() {
           title="Create New Customer / Tenant Account Ledger (Form 63)"
           onClose={() => setIsCreateLedgerModalOpen(false)}
         >
-          <form onSubmit={handleCreateLedgerSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <form onSubmit={handleCreateLedgerPreSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div className="form-group">
               <label className="form-label">
                 Account of (Customer / Tenant / Entity Name) <span style={{ color: 'red' }}>*</span>
@@ -842,10 +1037,79 @@ export default function LedgerModule() {
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
-                Create Account Ledger
+                Review & Create Ledger
               </button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {/* CONFIRMATION MODAL: CREATE NEW CUSTOMER SUBSIDIARY LEDGER */}
+      {isConfirmCreateLedgerOpen && (
+        <Modal
+          isOpen={isConfirmCreateLedgerOpen}
+          title="Confirm New Customer / Tenant Ledger"
+          subtitle="Please confirm the customer bookkeeping details before initializing."
+          size="md"
+          onClose={() => setIsConfirmCreateLedgerOpen(false)}
+          footer={
+            <>
+              <button className="btn btn-secondary" onClick={() => setIsConfirmCreateLedgerOpen(false)}>
+                Back / Edit
+              </button>
+              <button className="btn btn-primary" onClick={handleExecuteCreateLedger}>
+                <Check size={16} /> Confirm & Create Ledger
+              </button>
+            </>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{
+              padding: '14px 18px',
+              backgroundColor: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: '8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Tenant / Customer Name</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#0F172A' }}>
+                  {newLedgerForm.accountOf}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>ACCOUNT SYMBOL</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#B91C1C', fontFamily: 'Courier New, monospace' }}>
+                  {newLedgerForm.accountSymbol}
+                </div>
+              </div>
+            </div>
+
+            <table style={{ width: '100%', fontSize: 12.5, borderCollapse: 'collapse' }}>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600, width: '38%' }}>Address:</td>
+                  <td style={{ padding: '8px 4px', color: '#334155' }}>{newLedgerForm.address || '—'}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Sheet No.:</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 600, color: '#1E293B' }}>{newLedgerForm.sheetNo || '01'}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Accounting Period:</td>
+                  <td style={{ padding: '8px 4px', color: '#334155' }}>{newLedgerForm.period}</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Initial Balance:</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 700, color: '#059669', fontFamily: 'monospace' }}>
+                    {formatCurrency(parseFloat(newLedgerForm.initialBalance) || 0)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </Modal>
       )}
     </div>

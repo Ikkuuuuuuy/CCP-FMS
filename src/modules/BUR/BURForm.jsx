@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Info, ShieldAlert, Check } from 'lucide-react';
 import {
   FUND_CLUSTERS, ALLOTMENT_CLASSES, MFO_PAP_CODES, RESPONSIBILITY_CENTERS, CHART_OF_ACCOUNTS, CCP_OFFICES, MOCK_USERS,
 } from '../../data/seedData';
 import { formatCurrency, calcUtilizationPct } from '../../utils/formatters';
+import Modal from '../../components/Modal';
 
 export default function BURForm({ allotments, onSubmit, onCancel, error, initialData }) {
   const [form, setForm] = useState(() => {
@@ -44,6 +45,8 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
     };
   });
 
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const allotment = allotments[form.fundCluster]?.[form.allotmentClass];
@@ -53,9 +56,15 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
 
   const expenseAccounts = CHART_OF_ACCOUNTS.filter((a) => a.type === 'EXPENSE');
 
-  const handleSubmit = (e) => {
+  const handleOpenConfirm = (e) => {
     e.preventDefault();
     if (!form.amount || parseFloat(form.amount) <= 0 || !form.payeeName) return;
+    if (isOverBudget) return;
+    setShowConfirm(true);
+  };
+
+  const handleFinalSubmit = () => {
+    setShowConfirm(false);
     const assignedUser = MOCK_USERS.find(u => u.id === form.assignedTo);
     onSubmit({
       fundCluster: form.fundCluster,
@@ -77,13 +86,17 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
     });
   };
 
+  const selectedAccount = expenseAccounts.find((a) => a.code === form.accountCode);
+  const selectedUser = MOCK_USERS.find((u) => u.id === form.assignedTo);
+  const selectedFC = FUND_CLUSTERS.find((fc) => fc.code === form.fundCluster);
+
   return (
     <div>
       <div className="page-header">
         <div className="page-header-info">
-          <div className="page-title">New Budget Utilization Request</div>
+          <div className="page-title">{initialData ? 'Edit Budget Utilization Request' : 'New Budget Utilization Request'}</div>
           <div className="page-subtitle">
-            BUR No. will be auto-generated upon submission (e.g. 26-01-0023)
+            {initialData ? `Updating ${initialData.burNo}` : 'BUR No. will be auto-generated upon submission (e.g. 26-01-0023)'}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -101,7 +114,7 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
         </div>
       )}
 
-      <form id="bur-form" onSubmit={handleSubmit}>
+      <form id="bur-form" onSubmit={handleOpenConfirm}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           {/* Left Column */}
           <div>
@@ -278,6 +291,104 @@ export default function BURForm({ allotments, onSubmit, onCancel, error, initial
           </div>
         </div>
       </form>
+
+      {/* CONFIRMATION MODAL BEFORE ADDING BUR */}
+      <Modal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        title={initialData ? "Confirm BUR Update" : "Confirm Budget Utilization Request"}
+        subtitle="Please review the obligation and payee details before submitting."
+        size="md"
+        footer={
+          <>
+            <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
+              Back / Edit
+            </button>
+            <button className="btn btn-primary" onClick={handleFinalSubmit}>
+              <Check size={16} /> Confirm & Submit BUR
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{
+            padding: '14px 18px',
+            backgroundColor: '#F8FAFC',
+            border: '1px solid #E2E8F0',
+            borderRadius: '8px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div>
+              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Total Amount to Obligate</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', fontFamily: 'JetBrains Mono, monospace' }}>
+                {formatCurrency(parseFloat(form.amount) || 0)}
+              </div>
+            </div>
+            <div style={{
+              fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: '6px',
+              backgroundColor: form.status === 'OBLIGATED' ? '#ECFDF5' : '#EFF6FF',
+              color: form.status === 'OBLIGATED' ? '#059669' : '#2563EB',
+              border: `1px solid ${form.status === 'OBLIGATED' ? '#A7F3D0' : '#BFDBFE'}`
+            }}>
+              Status: {form.status}
+            </div>
+          </div>
+
+          <table style={{ width: '100%', fontSize: 12.5, borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600, width: '38%' }}>Payee Name:</td>
+                <td style={{ padding: '8px 4px', fontWeight: 700, color: '#1E293B' }}>{form.payeeName}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Address:</td>
+                <td style={{ padding: '8px 4px', color: '#334155' }}>{form.address || '—'}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Requesting Office:</td>
+                <td style={{ padding: '8px 4px', fontWeight: 600, color: '#1E293B' }}>{form.office} ({form.responsibilityCenter})</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Fund Cluster / Allotment:</td>
+                <td style={{ padding: '8px 4px', color: '#1E293B' }}>
+                  <strong>{form.fundCluster}</strong> ({selectedFC?.name || 'REGULAR'}) · <strong>{form.allotmentClass}</strong>
+                </td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Account Classification:</td>
+                <td style={{ padding: '8px 4px', color: '#334155' }}>
+                  <span className="mono">{form.accountCode}</span> — {selectedAccount?.name || 'Expense'}
+                </td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Assigned Processor:</td>
+                <td style={{ padding: '8px 4px', color: '#1E293B' }}>👤 {selectedUser?.name || 'Unassigned'}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Particulars:</td>
+                <td style={{ padding: '8px 4px', color: '#334155' }}>{form.particulars || '—'}</td>
+              </tr>
+              {form.reference && (
+                <tr>
+                  <td style={{ padding: '8px 4px', color: '#64748B', fontWeight: 600 }}>Reference Doc:</td>
+                  <td style={{ padding: '8px 4px', color: '#334155' }}>{form.reference}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px',
+            backgroundColor: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '6px',
+            fontSize: 12, color: '#92400E'
+          }}>
+            <Info size={16} style={{ flexShrink: 0 }} />
+            <span>Submitting will record this transaction and obligate funds against the {form.allotmentClass} budget.</span>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
