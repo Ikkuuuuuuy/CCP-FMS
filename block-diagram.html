@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CCP Financial Management System (CCP-FMS) - Block Diagram</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #F8FAFC;
+      color: #0F172A;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 20px 60px;
+    }
+    .header-container {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header-container h1 {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+      color: #0F172A;
+    }
+    .header-container p {
+      font-size: 13.5px;
+      color: #64748B;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+    .card-container {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px -5px rgba(0,0,0,0.07);
+      max-width: 1200px;
+      width: 100%;
+    }
+    .img-wrapper {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #E2E8F0;
+      background: #FFFFFF;
+    }
+    .img-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .legend-breakdown {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .feature-box {
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+    }
+    .feature-box h3 {
+      font-size: 12.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #1E293B;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .feature-box ul {
+      list-style-type: none;
+      font-size: 11.5px;
+      color: #475569;
+      line-height: 1.6;
+    }
+    .feature-box li::before {
+      content: "• ";
+      color: #059669;
+      font-weight: bold;
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .card-container { border: none; box-shadow: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-container">
+    <h1>CCP Financial Management System (CCP-FMS)</h1>
+    <p>System Architecture & Functional Block Diagram — Comprehensive Overview</p>
+  </div>
+
+  <div class="card-container">
+    <div class="img-wrapper">
+      <img src="ccp_fms_block_diagram.png" alt="CCP-FMS Block Diagram" />
+    </div>
+
+    <div class="legend-breakdown">
+      <div class="feature-box">
+        <h3>📊 1. Budget & Obligation</h3>
+        <ul>
+          <li>BUR Management (101, 151, 104)</li>
+          <li>Pre-Submission Review & Confirmation</li>
+          <li>Allotment Obligation (PS, MOOE, CO, FE)</li>
+          <li>New-to-Old Real-time Sorting</li>
+        </ul>
+      </div>
+
+      <div class="feature-box">
+        <h3>💳 2. Disbursement & Tax</h3>
+        <ul>
+          <li>DV Processing & 1-to-1 BUR Linkage</li>
+          <li>BIR Tax Deductions (EWT & Final VAT)</li>
+          <li>Payment Confirmation Modals</li>
+          <li>Check & LDDAP-ADA Release</li>
+        </ul>
+      </div>
+
+      <div class="feature-box">
+        <h3>📒 3. Accounting & Ledgers</h3>
+        <ul>
+          <li>General Journal Auto-Posting on Paid DVs</li>
+          <li>CCP Form 63 Subsidiary Ledger Engine</li>
+          <li>Customer / Tenant Accounts Management</li>
+          <li>Trial Balance & UACS Chart of Accounts</li>
+        </ul>
+      </div>
+
+      <div class="feature-box">
+        <h3>🛡️ 4. Audit & Administration</h3>
+        <ul>
+          <li>GovPKI Security & 2FA Access</li>
+          <li>Workload Assignment & Staff Routing</li>
+          <li>COA System Audit Trail & Delta Logs</li>
+          <li>Animated Toast Notifications</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

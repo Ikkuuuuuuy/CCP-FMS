@@ -2,15 +2,20 @@ import os
 import shutil
 from PIL import Image
 
-# Source finalized high-resolution image
-source_img = r"C:\Users\Wayne\.gemini\antigravity-ide\brain\5dfaeebf-d786-40ea-9c3d-2ead25e2086e\ccp_fms_final_flowchart_1788008039464.jpg"
-output_png = r"c:\Users\Wayne\.gemini\antigravity-ide\scratch\ccp-fms\ccp_fms_flowchart.png"
-output_jpg = r"c:\Users\Wayne\.gemini\antigravity-ide\scratch\ccp-fms\ccp_fms_flowchart.jpg"
+brain_dir = r"C:\Users\Wayne\.gemini\antigravity-ide\brain\c14928eb-f687-4104-b980-b4497dce4495"
+root_dir = r"c:\Users\Wayne\.gemini\antigravity-ide\scratch\ccp-fms"
 
-if os.path.exists(source_img):
-    img = Image.open(source_img)
-    img.save(output_png, "PNG", quality=100)
-    shutil.copyfile(source_img, output_jpg)
-    print(f"SUCCESS: Finalized flowchart image saved to:\n -> {output_png}\n -> {output_jpg}")
+# Updated Block Diagram Image (v2)
+block_diagram_src = os.path.join(brain_dir, "ccp_fms_block_diagram_v2_1788293282569.jpg")
+block_diagram_jpg = os.path.join(root_dir, "ccp_fms_block_diagram.jpg")
+block_diagram_png = os.path.join(root_dir, "ccp_fms_block_diagram.png")
+
+if os.path.exists(block_diagram_src):
+    shutil.copyfile(block_diagram_src, block_diagram_jpg)
+    img = Image.open(block_diagram_src)
+    img.save(block_diagram_png, "PNG", quality=100)
+    print("SUCCESS: Updated Block Diagram exported to:")
+    print(f" -> {block_diagram_png}")
+    print(f" -> {block_diagram_jpg}")
 else:
-    print("Source image file not found.")
+    print("Source block diagram image not found.")
